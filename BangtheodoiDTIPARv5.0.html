@@ -1534,7 +1534,8 @@ function scheduleAutoSaveCrit(src){
       if(pill){ pill.textContent='⏳ Đang lưu...'; }
       await saveCriteriaToServer(src);
       criteriaModified = false;
-      renderActiveTab();
+      // Pull confirmed data back from Sheets so display always matches stored values
+      await loadCriteriaFromServer();
       document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
         p.className='crit-pill-ok'; p.textContent='Đã đồng bộ ✓';
       });
@@ -1552,8 +1553,9 @@ function onChuTriSelect(src, idx, el){
   if(el.value === '__other__'){
     customInp.style.display = 'block';
     customInp.focus();
-    // Giữ giá trị hiện tại nếu là tên tự nhập
     arr[idx].chu_tri = customInp.value.trim();
+    // Don't auto-save yet — wait for user to type a value in the custom input
+    if(!arr[idx].chu_tri) return;
   } else {
     customInp.style.display = 'none';
     arr[idx].chu_tri = el.value;
@@ -1620,13 +1622,14 @@ async function handleSaveCriteria(){
 }
 
 function buildChuTriCell(src, idx, val){
-  const inList = DON_VI_LIST.indexOf(val) >= 0;
-  const isOther = !inList;
+  const valTrimmed = (val||'').trim();
+  const inList = DON_VI_LIST.indexOf(valTrimmed) >= 0;
+  const isOther = valTrimmed !== '' && !inList;
   const opts = DON_VI_LIST.map(function(dv){
-    return '<option value="'+escAttr(dv)+'"'+(val===dv?' selected':'')+'>'+dv+'</option>';
+    return '<option value="'+escAttr(dv)+'"'+(valTrimmed===dv?' selected':'')+'>'+dv+'</option>';
   }).join('') + '<option value="__other__"'+(isOther?' selected':'')+'>— Nhập tên khác... —</option>';
   const customDisplay = isOther ? 'block' : 'none';
-  const customVal = isOther ? escAttr(val||'') : '';
+  const customVal = isOther ? escAttr(valTrimmed) : '';
   return '<td style="min-width:160px">'
     +'<select class="crit-inp" style="width:100%" onchange="onChuTriSelect(\''+src+'\','+idx+',this)">'+opts+'</select>'
     +'<input type="text" class="crit-inp crit-custom-inp" placeholder="Tên đơn vị chủ trì..." value="'+customVal+'"'
