@@ -711,18 +711,21 @@ function renderDashboard(){
 }
 
 function renderDTITab(){
+  const total = dtiCriteria.length;
+  const maxScore = dtiCriteria.reduce((s,i)=>s+(i.diem_toi_da||0),0);
   return `<div class="panel">
     ${renderToolbar()}
-    <p class="hint">43 chỉ tiêu/nhiệm vụ thuộc Phụ lục DTI.Xã (tổng 100 điểm, 8 nhóm) — cập nhật tiến độ (%) sẽ tự tính điểm ước tính.</p>
-    <div id="dtiGroups">${renderGroupedItems(DTI_DATA, it=>it.nhom, arr=>`tối đa ${arr.reduce((s,i)=>s+(i.diem_toi_da||0),0)} đ`)}</div>
+    <p class="hint">${total} chỉ tiêu/nhiệm vụ thuộc Phụ lục DTI.Xã (tổng ${maxScore} điểm, 8 nhóm) — cập nhật tiến độ (%) sẽ tự tính điểm ước tính.</p>
+    <div id="dtiGroups">${renderGroupedItems(dtiCriteria, it=>it.nhom, arr=>`tối đa ${arr.reduce((s,i)=>s+(i.diem_toi_da||0),0)} đ`)}</div>
   </div>`;
 }
 
 function renderPARTab(){
+  const total = parCriteria.length;
   return `<div class="panel">
     ${renderToolbar()}
-    <p class="hint">81 nội dung thuộc Phụ lục PAR INDEX (7 lĩnh vực CCHC + khảo sát tác động + điểm thưởng/trừ).</p>
-    <div id="parGroups">${renderGroupedItems(PAR_DATA, it=>it.linh_vuc)}</div>
+    <p class="hint">${total} nội dung thuộc Phụ lục PAR INDEX (7 lĩnh vực CCHC + khảo sát tác động + điểm thưởng/trừ).</p>
+    <div id="parGroups">${renderGroupedItems(parCriteria, it=>it.linh_vuc)}</div>
   </div>`;
 }
 
@@ -1480,8 +1483,10 @@ async function loadCriteriaFromServer(){
   if(!isConfigured()) return;
   try{
     const data = await apiCall({action:'getCriteria',sheet:'ALL'});
-    if(data && data.dti && data.dti.length>0) dtiCriteria = data.dti;
-    if(data && data.par && data.par.length>0) parCriteria = data.par;
+    let changed = false;
+    if(data && data.dti && data.dti.length>0){ dtiCriteria = data.dti; changed = true; }
+    if(data && data.par && data.par.length>0){ parCriteria = data.par; changed = true; }
+    if(changed) renderActiveTab();
   }catch(e){}
 }
 
@@ -1529,6 +1534,7 @@ function scheduleAutoSaveCrit(src){
       if(pill){ pill.textContent='⏳ Đang lưu...'; }
       await saveCriteriaToServer(src);
       criteriaModified = false;
+      renderActiveTab();
       document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
         p.className='crit-pill-ok'; p.textContent='Đã đồng bộ ✓';
       });
