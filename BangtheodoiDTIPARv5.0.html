@@ -1518,6 +1518,57 @@ function onCritChange(src, idx, el){
   });
 }
 
+// ── Đơn vị chủ trì: select + tự nhập ──
+var _critSaveTimer = null;
+function scheduleAutoSaveCrit(src){
+  clearTimeout(_critSaveTimer);
+  _critSaveTimer = setTimeout(async function(){
+    if(!isConfigured()) return;
+    var pill = document.querySelector('.crit-pill-mod,.crit-pill-ok');
+    try{
+      if(pill){ pill.textContent='⏳ Đang lưu...'; }
+      await saveCriteriaToServer(src);
+      criteriaModified = false;
+      document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+        p.className='crit-pill-ok'; p.textContent='Đã đồng bộ ✓';
+      });
+    }catch(e){
+      document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+        p.className='crit-pill-mod'; p.textContent='Lỗi lưu — thử lại';
+      });
+    }
+  }, 900);
+}
+
+function onChuTriSelect(src, idx, el){
+  const arr = src==='DTI' ? dtiCriteria : parCriteria;
+  const customInp = el.parentNode.querySelector('.crit-custom-inp');
+  if(el.value === '__other__'){
+    customInp.style.display = 'block';
+    customInp.focus();
+    // Giữ giá trị hiện tại nếu là tên tự nhập
+    arr[idx].chu_tri = customInp.value.trim();
+  } else {
+    customInp.style.display = 'none';
+    arr[idx].chu_tri = el.value;
+  }
+  criteriaModified = true;
+  document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+    p.className='crit-pill-mod'; p.textContent='Có thay đổi chưa lưu';
+  });
+  scheduleAutoSaveCrit(src);
+}
+
+function onChuTriCustom(src, idx, el){
+  const arr = src==='DTI' ? dtiCriteria : parCriteria;
+  arr[idx].chu_tri = el.value.trim();
+  criteriaModified = true;
+  document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+    p.className='crit-pill-mod'; p.textContent='Có thay đổi chưa lưu';
+  });
+  scheduleAutoSaveCrit(src);
+}
+
 function addCriteriaRow(src){
   const it = src==='DTI'
     ? {id:genNewId('DTI'),nhom:'',ten:'',diem_toi_da:1,loai:'NV',dvt:'SP',khung:'',chu_tri:'',ghi_chu:'',_new:true}
@@ -1562,6 +1613,23 @@ async function handleSaveCriteria(){
   }
 }
 
+function buildChuTriCell(src, idx, val){
+  const inList = DON_VI_LIST.indexOf(val) >= 0;
+  const isOther = !inList;
+  const opts = DON_VI_LIST.map(function(dv){
+    return '<option value="'+escAttr(dv)+'"'+(val===dv?' selected':'')+'>'+dv+'</option>';
+  }).join('') + '<option value="__other__"'+(isOther?' selected':'')+'>— Nhập tên khác... —</option>';
+  const customDisplay = isOther ? 'block' : 'none';
+  const customVal = isOther ? escAttr(val||'') : '';
+  return '<td style="min-width:160px">'
+    +'<select class="crit-inp" style="width:100%" onchange="onChuTriSelect(\''+src+'\','+idx+',this)">'+opts+'</select>'
+    +'<input type="text" class="crit-inp crit-custom-inp" placeholder="Tên đơn vị chủ trì..." value="'+customVal+'"'
+    +' style="display:'+customDisplay+';margin-top:3px;width:100%"'
+    +' oninput="onChuTriCustom(\''+src+'\','+idx+',this)"'
+    +' onblur="onChuTriCustom(\''+src+'\','+idx+',this)"/>'
+    +'</td>';
+}
+
 function buildCritTable(src){
   if(src==='DTI'){
     const hds=['ID','Nhóm','Tên chỉ số','Điểm','Chủ trì','Loại','Khung','Ghi chú',''];
@@ -1571,7 +1639,7 @@ function buildCritTable(src){
         +'<td><input class="crit-inp" data-field="nhom" value="'+escAttr(it.nhom||'')+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
         +'<td><input class="crit-inp" data-field="ten" value="'+escAttr(it.ten||'')+'" onchange="onCritChange(\'DTI\','+i+',this)" style="min-width:200px"/></td>'
         +'<td><input class="crit-inp num" type="number" data-field="diem_toi_da" value="'+(it.diem_toi_da||0)+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
-        +'<td><select class="crit-inp" data-field="chu_tri" onchange="onCritChange(\'DTI\','+i+',this)">'+DON_VI_LIST.map(function(dv){return '<option value="'+escAttr(dv)+'"'+((it.chu_tri||'')==dv?' selected':'')+'>'+dv+'</option>';}).join('')+'<option value=""'+((it.chu_tri||'')==''?' selected':'')+'>— Khác —</option></select></td>'
+        +buildChuTriCell('DTI',i,it.chu_tri||'')
         +'<td><input class="crit-inp" data-field="loai" value="'+escAttr(it.loai||'')+'" onchange="onCritChange(\'DTI\','+i+',this)" style="width:48px"/></td>'
         +'<td><input class="crit-inp" data-field="khung" value="'+escAttr(it.khung||'')+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
         +'<td><input class="crit-inp" data-field="ghi_chu" value="'+escAttr(it.ghi_chu||'')+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
@@ -1588,7 +1656,7 @@ function buildCritTable(src){
         +'<td><input class="crit-inp" data-field="phan" value="'+escAttr(it.phan||'')+'" onchange="onCritChange(\'PAR\','+i+',this)" style="min-width:140px"/></td>'
         +'<td><input class="crit-inp" data-field="linh_vuc" value="'+escAttr(it.linh_vuc||'')+'" onchange="onCritChange(\'PAR\','+i+',this)"/></td>'
         +'<td><input class="crit-inp" data-field="ten" value="'+escAttr(it.ten||'')+'" onchange="onCritChange(\'PAR\','+i+',this)" style="min-width:180px"/></td>'
-        +'<td><select class="crit-inp" data-field="chu_tri" onchange="onCritChange(\'PAR\','+i+',this)">'+DON_VI_LIST.map(function(dv){return '<option value="'+escAttr(dv)+'"'+((it.chu_tri||'')==dv?' selected':'')+'>'+dv+'</option>';}).join('')+'<option value=""'+((it.chu_tri||'')==''?' selected':'')+'>— Khác —</option></select></td>'
+        +buildChuTriCell('PAR',i,it.chu_tri||'')
         +'<td><input class="crit-inp" data-field="loai" value="'+escAttr(it.loai||'')+'" onchange="onCritChange(\'PAR\','+i+',this)" style="width:48px"/></td>'
         +'<td><input class="crit-inp" data-field="khung" value="'+escAttr(it.khung||'')+'" onchange="onCritChange(\'PAR\','+i+',this)"/></td>'
         +'<td><input class="crit-inp" data-field="ghi_chu" value="'+escAttr(it.ghi_chu||'')+'" onchange="onCritChange(\'PAR\','+i+',this)"/></td>'
