@@ -1,0 +1,1870 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bảng theo dõi DTI &amp; PAR INDEX v5.1 — Xã Phước Hải</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f5f2ea;
+    --paper: #ffffff;
+    --ink: #1e2a44;
+    --ink-soft: #4b5774;
+    --ink-faint: #8089a0;
+    --line: #ddd6c4;
+    --accent: #b8862e;
+    --accent-soft: #f0e3c4;
+    --accent-deep: #8a611c;
+    --done: #2f7d4f;
+    --done-bg: #e4f1e8;
+    --progress: #c8862e;
+    --progress-bg: #faf0dc;
+    --pending: #8b93a6;
+    --pending-bg: #edeff3;
+    --overdue: #b23b3b;
+    --overdue-bg: #fbe7e6;
+    --shadow: 0 1px 2px rgba(30,42,68,.06), 0 8px 24px -12px rgba(30,42,68,.18);
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.5;}
+  h1,h2,h3,.serif{font-family:'Source Serif 4',Georgia,serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  button,select,input,textarea{font-family:inherit;font-size:inherit;color:inherit;}
+  ::selection{background:var(--accent-soft);}
+
+  .app{max-width:1180px;margin:0 auto;padding:0 0 64px;}
+
+  /* ---------- Topbar ---------- */
+  .topbar{position:relative;background:var(--ink);color:#fff;padding:22px 28px 20px;overflow:hidden;}
+  .topbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;
+    background:linear-gradient(90deg,var(--accent) 0%,var(--accent) 60%,#7a2222 60%,#7a2222 100%);}
+  .topbar__row{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap;}
+  .topbar__brand{display:flex;align-items:center;gap:16px;}
+  .seal{width:54px;height:54px;border-radius:50%;border:2px solid var(--accent);position:relative;flex:none;
+    display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 30% 30%, #2a3a5c, #1e2a44 70%);}
+  .seal svg{width:100%;height:100%;}
+  .topbar__title{margin:0;font-size:20px;font-weight:600;letter-spacing:.2px;}
+  .topbar__sub{margin:3px 0 0;font-size:12.5px;color:#c7cfe0;letter-spacing:.3px;}
+  .topbar__meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .updater-field{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:6px 10px;}
+  .updater-field label{font-size:11.5px;color:#c7cfe0;white-space:nowrap;}
+  .updater-field input{background:transparent;border:none;color:#fff;width:140px;outline:none;font-size:13px;}
+  .updater-field input::placeholder{color:#8c95ad;}
+  .save-state{font-size:11.5px;color:#c7cfe0;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .save-dot{width:7px;height:7px;border-radius:50%;background:var(--pending);}
+  .save-dot.saving{background:var(--progress);animation:pulse 1s infinite;}
+  .save-dot.saved{background:#6fcf97;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:2px;background:var(--ink);padding:0 24px;flex-wrap:wrap;}
+  .tab{appearance:none;border:none;background:transparent;color:#aab3c6;padding:12px 16px;cursor:pointer;
+    font-size:13.5px;font-weight:500;border-bottom:3px solid transparent;letter-spacing:.2px;}
+  .tab:hover{color:#fff;}
+  .tab.active{color:#fff;border-bottom-color:var(--accent);}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:16px 24px 0;}
+  .search-input{flex:1;min-width:200px;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);}
+  .chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--paper);
+    cursor:pointer;font-size:12.5px;color:var(--ink-soft);white-space:nowrap;}
+  .chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  select.chip{appearance:auto;}
+
+  .panel{padding:18px 24px 0;}
+  .hint{color:var(--ink-faint);font-size:12.5px;margin:2px 0 14px;}
+
+  /* ---------- KPI cards ---------- */
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  @media (max-width:880px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  .kpi-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+  .kpi-card__label{font-size:11.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+  .kpi-card__value{font-family:'Source Serif 4',serif;font-size:28px;font-weight:600;display:flex;align-items:baseline;gap:6px;}
+  .kpi-card__value small{font-size:14px;color:var(--ink-faint);font-family:'IBM Plex Sans',sans-serif;}
+  .kpi-card__foot{font-size:12px;color:var(--ink-soft);margin-top:6px;}
+  .kpi-ring{display:flex;align-items:center;gap:14px;}
+  .kpi-ring svg{flex:none;}
+
+  /* ---------- Group bars ---------- */
+  .bars{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);margin-bottom:14px;}
+  .bars h3{margin:0 0 12px;font-size:14.5px;}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
+  .bar-row__label{width:200px;flex:none;font-size:12.5px;color:var(--ink-soft);}
+  .bar-row__track{flex:1;height:9px;background:var(--pending-bg);border-radius:999px;overflow:hidden;}
+  .bar-row__fill{height:100%;background:linear-gradient(90deg,var(--accent-deep),var(--accent));border-radius:999px;}
+  .bar-row__val{width:64px;flex:none;text-align:right;font-size:12px;color:var(--ink-faint);}
+
+  /* ---------- Groups / items ---------- */
+  .group{margin-bottom:16px;}
+  .group__head{display:flex;align-items:center;justify-content:space-between;background:var(--ink);color:#fff;
+    padding:10px 14px;border-radius:8px 8px 0 0;cursor:pointer;}
+  .group__head h3{margin:0;font-size:14px;font-weight:600;}
+  .group__head .meta{font-size:11.5px;color:#c7cfe0;}
+  .group__body{border:1px solid var(--line);border-top:none;border-radius:0 0 8px 8px;background:var(--paper);}
+  .group__body.collapsed{display:none;}
+
+  .item-row{border-bottom:1px solid var(--line);padding:12px 14px;}
+  .item-row:last-child{border-bottom:none;}
+  .item-row__top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;cursor:pointer;}
+  .item-row__title{display:flex;gap:10px;align-items:flex-start;}
+  .item-code{font-size:10.5px;color:var(--ink-faint);white-space:nowrap;padding-top:2px;}
+  .item-name{font-size:13.3px;color:var(--ink);}
+  .item-row__right{display:flex;align-items:center;gap:8px;flex:none;}
+  .badge{font-size:10.5px;padding:2px 7px;border-radius:5px;border:1px solid var(--line);color:var(--ink-soft);white-space:nowrap;}
+  .badge--max{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent-deep);font-weight:600;}
+  .status-pill{font-size:11px;padding:3px 9px;border-radius:999px;font-weight:600;white-space:nowrap;}
+  .status-pill[data-s="chua"]{background:var(--pending-bg);color:var(--pending);}
+  .status-pill[data-s="dangtrienkhai"]{background:var(--progress-bg);color:var(--progress);}
+  .status-pill[data-s="hoanthanh"]{background:var(--done-bg);color:var(--done);}
+  .status-pill[data-s="khongdat"]{background:var(--overdue-bg);color:var(--overdue);}
+  .chevron{color:var(--ink-faint);font-size:11px;flex:none;padding-top:3px;}
+
+  .item-detail{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);display:none;}
+  .item-detail.open{display:block;}
+  .item-detail__criteria{font-size:12px;color:var(--ink-soft);background:#faf8f2;border:1px solid var(--line);
+    border-radius:6px;padding:8px 10px;margin-bottom:10px;}
+  .field-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media (max-width:760px){.field-grid{grid-template-columns:repeat(2,1fr);}}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field label{font-size:10.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.4px;}
+  .field select,.field input{padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;}
+  .field textarea{padding:7px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;resize:vertical;min-height:36px;font-size:12.5px;}
+  .field--wide{grid-column:span 2;}
+  @media (max-width:760px){.field--wide{grid-column:span 2;}}
+  .item-footrow{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11px;color:var(--ink-faint);}
+  .stale-flag{color:var(--overdue);font-weight:600;}
+  .quick-done{border:1px solid var(--done);color:var(--done);background:#fff;border-radius:6px;padding:4px 9px;cursor:pointer;font-size:11px;}
+  .quick-done:hover{background:var(--done-bg);}
+
+  /* ---------- Đơn vị tab ---------- */
+  .dv-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow);}
+  .dv-card__head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;}
+  .dv-card__head h3{margin:0;font-size:14px;}
+  .dv-stats{display:flex;gap:14px;font-size:11.5px;color:var(--ink-soft);flex-wrap:wrap;}
+  .dv-stats b{color:var(--ink);}
+  .dv-list{display:flex;flex-direction:column;gap:6px;}
+  .dv-list-item{display:flex;justify-content:space-between;gap:10px;font-size:12.3px;padding:6px 8px;background:#faf8f2;border-radius:6px;}
+  .dv-list-item .nm{flex:1;}
+
+  /* ---------- Footer actions ---------- */
+  .footer-actions{display:flex;justify-content:flex-end;margin:18px 24px 0;}
+  .btn-primary{background:var(--ink);color:#fff;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;font-size:13px;font-weight:600;}
+  .btn-primary:hover{background:#16213a;}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{position:fixed;inset:0;background:rgba(15,20,33,.55);display:none;align-items:flex-start;justify-content:center;padding:60px 20px 20px;z-index:50;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:84vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35);}
+  .modal__head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+  .modal__head h3{margin:0;font-size:15px;}
+  .modal__close{border:none;background:none;font-size:18px;cursor:pointer;color:var(--ink-faint);}
+  .modal__body{padding:16px 20px;overflow:auto;}
+  .modal__body textarea{width:100%;height:340px;border:1px solid var(--line);border-radius:8px;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11.8px;line-height:1.6;}
+  .modal__foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;}
+  .btn-ghost{background:none;border:1px solid var(--line);border-radius:8px;padding:9px 16px;cursor:pointer;font-size:12.5px;}
+
+  /* Modal cập nhật tiến độ */
+  .um-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+  .um-grid .full{grid-column:1/-1;}
+  @media (max-width:600px){.um-grid{grid-template-columns:1fr;}}
+  .hist-list{display:flex;flex-direction:column;gap:0;max-height:200px;overflow-y:auto;}
+  .hist-line{font-size:11.5px;color:var(--ink-soft);padding:6px 0;border-bottom:1px dashed var(--line);line-height:1.5;}
+  .hist-line:last-child{border-bottom:none;}
+  .hist-line b{color:var(--ink);font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:10.8px;}
+  .hist-empty{font-size:12px;color:var(--ink-faint);padding:8px 0;}
+  .toast{position:fixed;bottom:22px;right:22px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:8px;font-size:12.5px;font-weight:600;opacity:0;transform:translateY(10px);transition:all .3s;z-index:999;max-width:380px;line-height:1.5;pointer-events:none;box-shadow:var(--shadow);}
+  .toast.show{opacity:1;transform:translateY(0);}
+
+  /* Criteria editor */
+  .crit-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;}
+  .crit-stab{padding:6px 14px;border-radius:6px;border:1px solid var(--line);background:var(--paper);cursor:pointer;font-size:12.5px;font-weight:500;color:var(--ink-soft);}
+  .crit-stab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .crit-table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;max-height:60vh;overflow-y:auto;}
+  .crit-table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--paper);}
+  .crit-table th{background:var(--ink);color:#fff;padding:8px 10px;text-align:left;white-space:nowrap;font-size:11.5px;position:sticky;top:0;z-index:2;}
+  .crit-table td{padding:5px 7px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  .crit-table tr:hover td{background:#faf8f2;} .crit-table tr.crit-new td{background:#f0fff4;}
+  .crit-inp{width:100%;padding:4px 6px;border:1px solid transparent;border-radius:4px;background:transparent;font-size:12.5px;font-family:inherit;min-width:55px;}
+  .crit-inp:focus{border-color:var(--accent);background:#fff;outline:none;} .crit-inp.num{width:52px;text-align:right;}
+  .btn-del-row{border:none;background:none;color:var(--overdue);cursor:pointer;font-size:14px;padding:2px 5px;opacity:.5;} .btn-del-row:hover{opacity:1;}
+  .btn-add-row{width:100%;margin-top:8px;padding:8px;border:1.5px dashed var(--accent);border-radius:7px;background:transparent;color:var(--accent-deep);font-size:12.5px;cursor:pointer;font-family:inherit;} .btn-add-row:hover{background:var(--accent-soft);}
+  .btn-save-crit{background:var(--done);color:#fff;border:none;border-radius:7px;padding:9px 20px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;} .btn-save-crit:disabled{background:#bbb;cursor:not-allowed;}
+  .crit-pill-mod{background:var(--progress-bg);color:var(--progress);border:1px solid var(--progress);border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;}
+  .crit-pill-ok{background:var(--done-bg);color:var(--done);border:1px solid var(--done);border-radius:4px;padding:2px 8px;font-size:11px;font-weight:600;}
+  .empty{padding:30px 10px;text-align:center;color:var(--ink-faint);font-size:13px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar__row">
+      <div class="topbar__brand">
+        <div class="seal" title="Tiến độ DTI ước tính">
+          <svg viewBox="0 0 54 54"><circle id="sealRing" cx="27" cy="27" r="21" fill="none" stroke="#b8862e" stroke-width="3" stroke-dasharray="0 1000" stroke-linecap="round" transform="rotate(-90 27 27)"/></svg>
+        </div>
+        <div>
+          <h1 class="topbar__title serif">Bảng điều hành theo dõi Chuyển đổi số &amp; CCHC</h1>
+          <p class="topbar__sub">Xã Phước Hải · Phụ lục DTI.Xã &amp; PAR INDEX 2026 · v5.1</p>
+        </div>
+      </div>
+      <div class="topbar__meta">
+        <div class="updater-field">
+          <label>Người cập nhật</label>
+          <input id="updaterInput" placeholder="Họ tên cán bộ..." />
+        </div>
+        <div id="authArea" style="display:flex;align-items:center;margin-right:4px;"></div>
+        <div class="save-state"><span class="save-dot" id="saveDot"></span><span id="saveText">Sẵn sàng</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="dashboard">Tổng quan</button>
+    <button class="tab" data-tab="dti">DTI cấp xã (43)</button>
+    <button class="tab" data-tab="par">PAR INDEX (81)</button>
+    <button class="tab" data-tab="donvi">Theo đơn vị</button>
+    <button class="tab" data-tab="criteria" id="critTab" style="display:none">Bộ chỉ số ✏️</button>
+  </div>
+
+  <div id="content"></div>
+
+  <div class="footer-actions">
+    <button class="btn-primary" id="exportBtn">Tạo biên bản tổng hợp tiến độ</button>
+    <button class="btn-primary" id="exportExcelBtn" style="background:#1e6e3a;border-color:#155a2f;" onclick="exportToExcel()">📊 Xuất Excel</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal__head"><h3 class="serif">Biên bản tổng hợp tiến độ</h3><button class="modal__close" id="modalClose">✕</button></div>
+    <div class="modal__body"><textarea id="reportText" readonly></textarea></div>
+    <div class="modal__foot">
+      <button class="btn-ghost" id="modalCloseBtn">Đóng</button>
+      <button class="btn-primary" id="copyBtn">Sao chép nội dung</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="updateModalOverlay">
+  <div class="modal">
+    <div class="modal__head">
+      <div>
+        <h3 class="serif" id="umTitle">Cập nhật tiến độ</h3>
+        <div id="umSub" style="font-size:11.5px;color:var(--ink-faint);margin-top:2px;"></div>
+      </div>
+      <button class="modal__close" id="umClose">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="um-grid">
+        <div class="field">
+          <label>Trạng thái</label>
+          <select id="umStatus">
+            <option value="chua">Chưa triển khai</option>
+            <option value="dangtrienkhai">Đang triển khai</option>
+            <option value="hoanthanh">Hoàn thành</option>
+            <option value="khongdat">Không đạt / quá hạn</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Tiến độ (%)</label>
+          <input type="number" min="0" max="100" id="umProgress" />
+        </div>
+        <div class="field full">
+          <label>Kết quả / số liệu</label>
+          <input type="text" id="umResult" placeholder="VD: 92% hồ sơ trực tuyến" />
+        </div>
+        <div class="field full">
+          <label>Ghi chú cập nhật</label>
+          <textarea id="umNote" placeholder="Ghi chú, văn bản căn cứ..." style="min-height:60px;"></textarea>
+        </div>
+        <div class="field full">
+          <label>Người cập nhật</label>
+          <input type="text" id="umUpdater" placeholder="Họ tên cán bộ..." />
+        </div>
+      </div>
+      <button type="button" id="umQuickDone" style="border:1px solid var(--done);color:var(--done);background:#fff;border-radius:6px;padding:5px 11px;cursor:pointer;font-size:11.5px;margin-bottom:18px;font-family:inherit;">Đánh dấu hoàn thành 100%</button>
+
+      <div style="border-top:1px dashed var(--line);padding-top:12px;">
+        <div style="font-size:11px;font-weight:600;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Lịch sử cập nhật</div>
+        <div id="umHistory" class="hist-list">Đang tải...</div>
+      </div>
+    </div>
+    <div class="modal__foot">
+      <span id="umMsg" style="font-size:11.5px;color:var(--overdue);margin-right:auto;align-self:center;"></span>
+      <button class="btn-ghost" id="umCancel">Hủy</button>
+      <button class="btn-primary" id="umSave">Lưu cập nhật</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DTI_DATA = [{"id": "DTI-01", "nhom": "Nhận thức số", "ten": "Người đứng đầu xã, phường, đặc khu là Trưởng Ban Chỉ đạo về phát triển khoa học, công nghệ, đổi mới sáng tạo, chuyển đổi số và Đề án 06", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Trưởng Ban là Bí thư/Chủ tịch xã, phường, đặc khu: điểm tối đa. +  - Chưa có Ban Chỉ đạo hoặc có nhưng Trưởng Ban không phải là Bí thư/Chủ tịch xã, phường, đặc khu: 0 điểm."}, {"id": "DTI-02", "nhom": "Nhận thức số", "ten": "Bí thư/Chủ tịch xã, phường, đặc khu chủ trì các cuộc họp về chuyển đổi số", "diem_toi_da": 2.0, "loai": "CT&NV", "dvt": "SP+%", "khung": "Tỷ lệ*Điểm tối đa", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "a= Số cuộc họp chuyển đổi số (CĐS) của cấp xã do Bí thư/Chủ tịch xã, phường, đặc khu chủ trì. +  b= Tổng số cuộc họp CĐS của xã, phường, đặc khu  +  - Tỷ lệ = a/b +  - Điểm= Tỷ lệ*Điểm tối đa"}, {"id": "DTI-03", "nhom": "Nhận thức số", "ten": "Văn bản chỉ đạo chuyên đề về chuyển đổi số do người đứng đầu (hoặc cấp phó người đứng đầu được giao nhiệm vụ về lĩnh vực chuyển đổi số) của xã, phường, đặc khu ký", "diem_toi_da": 2.0, "loai": "CT&NV", "dvt": "SP+%", "khung": "Tỷ lệ*Điểm tối đa", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "a=Số lượng văn bản chỉ đạo chuyên đề về CĐS do người đứng đầu (hoặc cấp phó người đứng đầu được giao nhiệm vụ về lĩnh vực chuyển đổi số) của UBND xã, phường, đặc khu ký. +  b=Tổng số lượng văn bản chỉ đạo chuyên đề về chuyển đổi số của xã, phường, đặc khu theo yêu cầu của Thành phố. +  - Tỷ lệ=a/b +  - Điểm=Tỷ lệ*Điểm tối đa"}, {"id": "DTI-04", "nhom": "Nhận thức số", "ten": "Cổng/Trang thông tin điện tử có chuyên mục riêng về chuyển đổi số", "diem_toi_da": 2.0, "loai": "CT", "dvt": "SP+SL", "khung": ">52 bài/năm", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "- Đã có chuyên mục và số lượng tin, bài về Chuyển đổi số trong năm: +  + Từ 52 tin bài/năm trở lên: điểm tối đa;  +  + Từ 20 đến 51: 1/2 *điểm tối đa; +  + Dưới 20: 1/4* điểm tối đa;  +  + Chưa có chuyên mục: 0 điểm"}, {"id": "DTI-05", "nhom": "Thể chế số", "ten": "Triển khai Kế hoạch của Thành ủy Thành phố và Ủy ban nhân dân Thành phố về thực hiện Nghị quyết 57-NQ/TW của Bộ Chính trị về đột phá phát triển khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số.", "diem_toi_da": 1.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Đã ban hành kế hoạch năm: Điểm tối đa +  - Chưa ban hành kế hoạch năm: 0 điểm"}, {"id": "DTI-06", "nhom": "Thể chế số", "ten": "Triển khai Kế hoạch về chuyển đổi số", "diem_toi_da": 1.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Đã ban hành kế hoạch năm: Điểm tối đa +  - Chưa ban hành kế hoạch năm: 0 điểm"}, {"id": "DTI-07", "nhom": "Thể chế số", "ten": "Thực hiện báo cáo định kỳ hàng quý về chuyển đổi số và phát triển đô thị thông minh trên Hệ thống DTI", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "Đối với báo cáo mỗi quý: +  - Đúng hạn: 0,5 điểm +  - Trễ hạn: 0,25 điểm +  - Không thực hiện: 0 điểm"}, {"id": "DTI-08", "nhom": "Thể chế số", "ten": "Triển khai Nghị quyết của HĐND Thành phố quy định mức thu lệ phí đối với hoạt động cung cấp dịch vụ công bằng hình thức trực tuyến.", "diem_toi_da": 1.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "- Đã ban hành: Điểm tối đa +  - Chưa ban hành: 0 điểm"}, {"id": "DTI-09", "nhom": "Thể chế số", "ten": "Triển khai văn bản về phát triển dữ liệu số", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Đã ban hành: Điểm tối đa +  - Chưa ban hành: 0 điểm"}, {"id": "DTI-10", "nhom": "Thể chế số", "ten": "Triển khai Kế hoạch phong trào Bình dân học vụ số", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Đã ban hành: 1/2 * điểm tối đa. +  - Đã hoàn thành các nhiệm vụ được giao: 1/2 * điểm tối đa. +  - Chưa ban hành và chưa hoàn thành nhiệm vụ được giao: 0 điểm."}, {"id": "DTI-11", "nhom": "Thể chế số", "ten": "Có sáng kiến khuyến khích người dân, doanh nghiệp/hộ kinh doanh sử dụng dịch vụ công trực tuyến", "diem_toi_da": 1.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "- Đã ban hành: Điểm tối đa +  - Chưa ban hành: 0 điểm"}, {"id": "DTI-12", "nhom": "Hạ tầng số", "ten": "Tỷ lệ công chức, viên chức (CCVC) của cơ quan, đơn vị được trang bị máy tính", "diem_toi_da": 1.0, "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "Tổng số máy vi tính/Tổng số CCVC. +  - 100% máy tính đã trang bị cho CCVC: điểm tối đa +  - Từ 90% - dưới 100%: Tỷ lệ * điểm tối đa. +  - Dưới 90%: 0 điểm."}, {"id": "DTI-13", "nhom": "Hạ tầng số", "ten": "Tỷ lệ máy tính kết nối Internet (trừ các máy tính xử lý tài liệu mật)", "diem_toi_da": 1.0, "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "- 100% máy tính đã kết nối Internet: điểm tối đa +  - Từ 90% - dưới 100%: Tỷ lệ * điểm tối đa. +  - Dưới 90%: 0 điểm."}, {"id": "DTI-14", "nhom": "Hạ tầng số", "ten": "Mức độ ứng dụng Trí tuệ nhân tạo (AI) trong nền tảng số", "diem_toi_da": 4.0, "loai": "NV", "dvt": "SP+SL", "khung": ">02 ứng dụng", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Đơn vị có triển khai ứng dụng AI phục vụ CCVC: 1/2 * điểm tối đa. +  - Đơn vị có triển khai ứng dụng AI phục vụ người dân, doanh nghiệp: +  + 01 ứng dụng AI: 1/4 * điểm tối đa.  +  + 01 ứng dụng AI khác: 1/4 * điểm tối đa."}, {"id": "DTI-15", "nhom": "Nhân lực số", "ten": "Tỷ lệ ấp, khu phố có Tổ công nghệ số cộng đồng được ban hành Quyết định thành lập/kiện toàn", "diem_toi_da": 2.0, "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "Số lượng thôn, ấp, khu phố có Tổ công nghệ số cộng đồng / Tổng số thôn, ấp, khu phố +  - Đạt 100%: điểm tối đa +  - Dưới 100%: Tỷ lệ * điểm tối đa"}, {"id": "DTI-16", "nhom": "Nhân lực số", "ten": "Xã, phường, đặc khu có bộ phận/đầu mối thực hiện nhiệm vụ về chuyển đổi số", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Có: điểm tối đa. +  - Không có: 0 điểm."}, {"id": "DTI-17", "nhom": "Nhân lực số", "ten": "Công chức, viên chức chuyên trách về chuyển đổi số", "diem_toi_da": 1.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "Có công chức, viên chức chuyên trách về chuyển đổi số được bố trí tại UBND cấp xã: Điểm tối đa +  Không có công chức, viên chức chuyên trách về chuyển đổi số được bố trí tại UBND cấp xã: 0 điểm."}, {"id": "DTI-18", "nhom": "Nhân lực số", "ten": "Công chức, viên chức chuyên trách/kiêm nhiệm về An toàn thông tin mạng", "diem_toi_da": 1.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "Có công chức, viên chức chuyên trách/kiêm nhiệm về An toàn thông tin mạng được bố trí tại UBND cấp: Điểm tối đa. +  Không có công chức, viên chức chuyên trách/kiêm nhiệm về An toàn thông tin mạng được bố trí tại UBND cấp xã: 0 điểm"}, {"id": "DTI-19", "nhom": "Nhân lực số", "ten": "Tỷ lệ công chức, viên chức được bồi dưỡng, tập huấn về chuyển đổi số", "diem_toi_da": 2.0, "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "a= Số lượng công chức, viên chức được bồi dưỡng, tập huấn (bao gồm theo hình thức trực tiếp và trực tuyến) về chuyển đổi số. +  b= Tổng số công chức, viên chức. +  - Tỷ lệ=a/b; +  + Đạt 100%: điểm tối đa +  + Dưới 100%: Tỷ lệ*điểm tối đa"}, {"id": "DTI-20", "nhom": "Nhân lực số", "ten": "Triển khai các hoạt động phổ cập kỹ năng số cho người dân", "diem_toi_da": 1.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Đơn vị có tổ chức triển khai các hoạt động phổ cập kỹ năng số cho người dân (thông qua Nền tảng bình dân học vụ số, các mô hình thực tiễn tại địa phương như “Cà phê sáng - Trao đổi với nhân dân, phổ biến, cập nhật kỹ năng số”, “Gia đình số”, “Đại sứ số”,… các hoạt động bồi dưỡng trực tiếp/trực tuyến khác do đơn vị chủ động tổ chức,…): Điểm tối đa +  - Đơn vị không triển khai: 0 điểm"}, {"id": "DTI-21", "nhom": "Nhân lực số", "ten": "Tỷ lệ người dân được phổ cập kỹ năng số", "diem_toi_da": 1.0, "loai": "CT", "dvt": "%", "khung": "Tỷ lệ*điểm tối đa", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "a= Số lượng người dân được phổ cập kỹ năng số. +  b= Số lượng dân số trưởng thành. +  - Tỷ lệ=a/b; +  - Điểm=Tỷ lệ*điểm tối đa"}, {"id": "DTI-22", "nhom": "An toàn thông tin mạng", "ten": "Số lượng hệ thống thông tin được xác định và phê duyệt cấp độ an toàn", "diem_toi_da": 1.0, "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không + 100%", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "a= Số lượng hệ thống thông tin (HTTT) đã xác định và được phê duyệt cấp độ an toàn. +  b= Tổng số HTTT của đơn vị. +  - Tỷ lệ=a/b; +  - Điểm=Tỷ lệ*điểm tối đa"}, {"id": "DTI-23", "nhom": "An toàn thông tin mạng", "ten": "Số lượng hệ thống thông tin triển khai đầy đủ phương án bảo vệ theo Hồ sơ đề xuất cấp độ (HSĐXCĐ) đã được phê duyệt", "diem_toi_da": 1.0, "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không + 100%", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "a= Số lượng hệ thống thông tin đã triển khai đầy đủ phương án bảo vệ theo HSĐXCĐ đã được phê duyệt. +  b= Tổng số hệ thống thông tin đã được phê duyệt. +  - Tỷ lệ=a/b; +  - Điểm=Tỷ lệ*điểm tối đa"}, {"id": "DTI-24", "nhom": "An toàn thông tin mạng", "ten": "Cổng/Trang thông tin điện tử được cấp chứng nhận tín nhiệm mạng", "diem_toi_da": 1.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "- Đã được cấp chứng nhận tín nhiệm mạng: điểm tối đa; +  - Chưa được cấp: 0 điểm"}, {"id": "DTI-25", "nhom": "An toàn thông tin mạng", "ten": "Người đứng đầu Ủy ban nhân dân cấp xã thường xuyên tăng cường, đôn đốc, chỉ đạo, điều hành về công tác An toàn thông tin.", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã + + Công an xã", "ghi_chu": "- Đã triển khai: điểm tối đa. +  - Chưa triển khai: 0 điểm."}, {"id": "DTI-26", "nhom": "Hoạt động Chính quyền số", "ten": "Cổng/Trang thông tin điện tử đáp ứng yêu cầu chức năng, tính năng kỹ thuật theo quy định", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "- Cổng thông tin điện tử có gắn nhãn xác nhận đã kết nối với Hệ thống EMC: 1/2 * điểm tối đa; +  - Cổng thông tin điện tử có hiển thị đường dẫn trên trang chủ trỏ đến Cổng/Trang: Ủy ban nhân dân Thành phố: 1/2 * điểm tối đa."}, {"id": "DTI-27", "nhom": "Hoạt động Chính quyền số", "ten": "Tỷ lệ thủ tục hành chính liên quan đến doanh nghiệp được thực hiện trực tuyến, thông suốt, liền mạch.", "diem_toi_da": 3.0, "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "=Số lượng TTHC liên quan đến doanh nghiệp được thực hiện trực tuyến toàn trình hoặc một phần. +  b= Tổng số TTHC liên quan đến doanh nghiệp đến thời điểm hiện tại +  - Tỷ lệ = a / b.  +  + Đạt 100%: điểm tối đa. +  + Dưới 100%: 0 điểm."}, {"id": "DTI-28", "nhom": "Hoạt động Chính quyền số", "ten": "Tỷ lệ hồ sơ nộp trực tuyến", "diem_toi_da": 5.0, "loai": "CT", "dvt": "%", "khung": ">75%", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "a= Tổng số hồ sơ giải quyết thủ tục hành chính trong năm của đơn vị. +  b= Tổng số hồ sơ nộp trực tuyến của DVCTT một phần. +  c= Tổng số hồ sơ nộp trực tuyến của DVCTT toàn trình. +  - Tỷ lệ = (b + c)/ a +  + Từ 75% trở lên: điểm tối đa. +  + Dưới 75% : Tỷ lệ *điểm tối đa"}, {"id": "DTI-29", "nhom": "Hoạt động Chính quyền số", "ten": "Tỷ lệ hồ sơ trực tuyến toàn trình", "diem_toi_da": 5.0, "loai": "CT", "dvt": "%", "khung": ">80%", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "a= Tổng số hồ sơ thực hiện trực tuyến toàn trình của DVCTT mức độ toàn trình. +  b= Tổng số hồ sơ giải quyết thủ tục hành chính trong năm của đơn vị. +  - Tỷ lệ=a/b +  + Từ 80% trở lên: điểm tối đa. +  + Dưới 80% : Tỷ lệ*điểm tối đa"}, {"id": "DTI-30", "nhom": "Hoạt động Chính quyền số", "ten": "Mức độ hài lòng của người dân, doanh nghiệp khi sử dụng DVCTT trên Bản đồ thực thi thể chế quốc gia", "diem_toi_da": 3.0, "loai": "CT", "dvt": "%", "khung": ">95%", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "a= Tổng số người dân tham gia đánh giá mức độ hài lòng. +  b= Số lượng người dân đánh giá là hài lòng khi sử dụng DVCTT. +  c= Tổng số doanh nghiệp tham gia đánh giá mức độ hài lòng. +  d= Số lượng doanh nghiệp đánh giá là hài lòng khi sử dụng DVCTT. +  - Tỷ lệ = (b+d)/(a+c) +  + Từ 95% trở lên: Điểm tối đa +  + Dưới 95%: Tỷ lệ*điểm tối đa;"}, {"id": "DTI-31", "nhom": "Hoạt động Chính quyền số", "ten": "Tỷ lệ hồ sơ, TTHC có cấp kết quả giải quyết bản điện tử", "diem_toi_da": 5.0, "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "=+ Đạt 100%: Điểm tối đa +  + Dưới 100%: Tỷ lệ*điểm tối đa"}, {"id": "DTI-32", "nhom": "Hoạt động Chính quyền số", "ten": "Tỷ lệ hồ sơ TTHC được tiếp nhận và số hóa hồ sơ", "diem_toi_da": 5.0, "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "=+ Đạt 100%: Điểm tối đa +  + Dưới 100%: Tỷ lệ*điểm tối đa"}, {"id": "DTI-33", "nhom": "Hoạt động Chính quyền số", "ten": "Tỷ lệ TTHC có phát sinh giao dịch thanh toán trực tuyến", "diem_toi_da": 4.0, "loai": "CT", "dvt": "%", "khung": "Tỷ lệ * Điểm tối đa", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "a: số TTHC có phát sinh giao dịch thanh toán trực tuyến +  b: tổng số TTHC đang triển khai thanh toán trực tuyến +  - - Tỷ lệ = a/b +  - - Điểm = Tỷ lệ * Điểm tối đa"}, {"id": "DTI-34", "nhom": "Hoạt động Chính quyền số", "ten": "Tỷ lệ hồ sơ thanh toán trực tuyến", "diem_toi_da": 4.0, "loai": "CT", "dvt": "%", "khung": "Tỷ lệ * Điểm tối đa", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "a: số hồ sơ có phát sinh giao dịch thanh toán trực tuyến +  b: tổng số hồ sơ đã giải quyết của các TTHC đang triển khai thanh toán trực tuyến +  - - Tỷ lệ = a/b +  - - Điểm = Tỷ lệ * Điểm tối đa"}, {"id": "DTI-35", "nhom": "Hoạt động Chính quyền số", "ten": "Sử dụng Nền tảng tích hợp, chia sẻ Kho dữ liệu dùng chung", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Có sử dụng: Điểm tối đa; +  - Chưa sử dụng: 0 điểm"}, {"id": "DTI-36", "nhom": "Hoạt động Chính quyền số", "ten": "Sử dụng Hệ thống tiếp nhận, xử lý phản ánh kiến nghị người dân qua tổng đài 1022", "diem_toi_da": 4.0, "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không + 100%", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "1. Hệ thống 1022 +  - Có sử dụng: 2 điểm +  - Chưa sử dụng: 0 điểm +  2. Số tin giải quyết trên Hệ thống 1022 +  - a= Số tin phản ánh kiến nghị được xử lý đúng hẹn. +  - b= Tổng số tin phản ánh kiến nghị tiếp nhận trong năm. +  - Tỷ lệ=a/b +  + Đạt 100%: 2 điểm. +  + Từ 90% - dưới 100%: Tỷ lệ * 2 điểm +  + Dưới 90%: 0 điểm +  **Nếu không có phản ánh kiến nghị, đơn vị đạt điểm tối đa"}, {"id": "DTI-37", "nhom": "Hoạt động Chính quyền số", "ten": "Tỷ lệ hồ sơ công việc tại cấp xã được xử lý trên môi trường mạng (không bao gồm hồ sơ xử lý công việc có nội dung mật)", "diem_toi_da": 3.0, "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": "a= Số hồ sơ công việc được giải quyết trên môi trường mạng +  b= Tổng số hồ sơ công việc của đơn vị (gọi là b) +  - Tỷ lệ=a/b +  + Đạt 100%: điểm tối đa +  + Dưới 100%: 0 điểm."}, {"id": "DTI-38", "nhom": "Hoạt động Kinh tế số", "ten": "Tổ chức triển khai kế hoạch hành động phát triển kinh tế số và xã hội số trong ngành, lĩnh vực, địa phương.", "diem_toi_da": 3.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Đã ban hành Kế hoạch hoặc tổ chức triển khai: Điểm tối đa. +  - Chưa ban hành hoặc chưa triển khai: 0 điểm."}, {"id": "DTI-39", "nhom": "Hoạt động Kinh tế số", "ten": "Tuyên truyền, hướng dẫn và khuyến khích người dân truy cập Internet, đăng ký tài khoản và sử dụng các dịch vụ số mà trọng tâm là dịch vụ công trực tuyến, dịch vụ y tế số, giáo dục số, sử dụng các mạng xã hội, mua bán trực tuyến, thanh toán điện tử và khai thác tiện ích, tài nguyên số trên Internet.", "diem_toi_da": 3.0, "loai": "CT&NV", "dvt": "SP+SL+%", "khung": "Tỷ lệ * điểm tối đa.", "chu_tri": "* Phòng Văn hóa - Xã hội & Trung tâm Cung ứng DVC", "ghi_chu": "- Đã tổ chức tuyên truyền, hướng dẫn đầy đủ 7 nội dung: điểm tối đa. +  - Đã tổ chức tuyên truyền, hướng dẫn chưa đầy đủ nội dung: Điểm = Tỷ lệ * điểm tối đa. +  - Chưa tuyên truyền: 0 điểm."}, {"id": "DTI-40", "nhom": "Hoạt động Xã hội số", "ten": "Tỷ lệ người dân từ 14 tuổi trở lên có danh tính điện tử (VNeID) sử dụng được cho các giao dịch điện tử", "diem_toi_da": 2.0, "loai": "CT", "dvt": "%", "khung": ">95%", "chu_tri": "Công an xã", "ghi_chu": "a= Dân số từ 14 tuổi trở lên đã được cấp tài khoản định danh điện tử mức 2 trở lên tính đến cuối kỳ báo cáo. +  b= Dân số trung bình từ 14 tuổi trở lên của năm báo cáo. +  - Tỷ lệ=a/b; +  - Điểm: Tỷ lệ*Điểm tối đa"}, {"id": "DTI-41", "nhom": "Hoạt động Xã hội số", "ten": "Số lượng dân số trưởng thành có chữ ký số hoặc chữ ký điện tử cá nhân", "diem_toi_da": 5.0, "loai": "CT", "dvt": "%", "khung": "0.3", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "a= Số lượng người dân có chữ ký số hoặc chữ ký điện tử. +  b= Tổng dân số trưởng thành. +  - Tỷ lệ=a/b +  + Từ 30% trở lên: điểm tối đa +  + Dưới 30%: Tỷ lệ *điểm tối đa"}, {"id": "DTI-42", "nhom": "Hoạt động Xã hội số", "ten": "Triển khai các hoạt động phát huy hiệu quả Tổ công nghệ số cộng đồng", "diem_toi_da": 2.0, "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "- Địa phương có triển khai các hoạt động của Tổ công nghệ số cộng đồng, “đi từng ngõ, gõ từng nhà”; thực hiện tuyên truyền, phổ biến, hướng dẫn, vận động người dân tham gia sử dụng các dịch vụ, tiện ích số của Thành phố (như dịch vụ công trực tuyến, thanh toán điện tử...): Điểm tối đa +  - Đơn vị không triển khai: 0 điểm"}, {"id": "DTI-43", "nhom": "Hoạt động Xã hội số", "ten": "Tỷ lệ người dân biết kỹ năng về công nghệ thông tin và truyền thông", "diem_toi_da": 1.0, "loai": "CT", "dvt": "%", "khung": ">70%", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "a = Số người dân được tuyên truyền, phổ biến, hướng dẫn, vận động tham gia sử dụng các dịch vụ, tiện ích số của Thành phố +  b= Dân số trung bình của năm báo cáo. +  - Tỷ lệ=a/b; +  + Từ 70% trở lên: điểm tối đa +  + Dưới 70%: Tỷ lệ *điểm tối đa"}];
+const PAR_DATA = [{"id": "PAR-001", "diem_toi_da": 1.0, "ma": "1.1.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Xây dựng và thực hiện Kế hoạch CCHC hàng năm", "ten": "Ban hành kế hoạch CCHC", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-002", "diem_toi_da": 1.0, "ma": "1.1.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Xây dựng và thực hiện Kế hoạch CCHC hàng năm", "ten": "Mức độ hoàn thành Kế hoạch CCHC", "loai": "CT&NV", "dvt": "SP+%", "khung": "1.0", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "Các Phòng chuyên môn Phải thực hiện"}, {"id": "PAR-003", "diem_toi_da": 2.0, "ma": "1.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Xây dựng và thực hiện Kế hoạch CCHC hàng năm", "ten": "Thực hiện báo cáo kết quả công tác CCHC", "loai": "CT&NV", "dvt": "SP+SL", "khung": "Đúng thời gian, Đủ SL", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "Các Phòng chuyên môn Phải thực hiện"}, {"id": "PAR-004", "diem_toi_da": 1.0, "ma": "1.3.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác kiểm tra CCHC", "ten": "Tỷ lệ phòng chuyên môn, đơn vị trực thuộc được kiểm tra trong năm", "loai": "CT&NV", "dvt": "SP+%", "khung": ">30%", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-005", "diem_toi_da": 1.0, "ma": "1.3.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác kiểm tra CCHC", "ten": "Xử lý các vấn đề phát hiện qua kiểm tra", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "Các đơn vị được kiểm tra thực hiện"}, {"id": "PAR-006", "diem_toi_da": 0.5, "ma": "1.4.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác tuyên truyền CCHC", "ten": "Ban hành kế hoạch tuyên truyền riêng hoặc lồng ghép chung trong kế hoạch CCHC của đơn vị; theo đó phải cụ thể các hình thức tuyên truyền và thời gian thực hiện", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-007", "diem_toi_da": 0.5, "ma": "1.4.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác tuyên truyền CCHC", "ten": "Mức độ đa dạng hình thức tuyên truyền CCHC", "loai": "CT&NV", "dvt": "SP+SL", "khung": "> 03 hình thức tuyên truyền", "chu_tri": "* Phòng Văn hóa - Xã hội & Trung tâm Cung ứng DVC", "ghi_chu": null}, {"id": "PAR-008", "diem_toi_da": 2.0, "ma": "1.5", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác tuyên truyền CCHC", "ten": "Đổi mới, sáng tạo trong triển khai thực hiện nhiệm vụ CCHC", "loai": "CT&NV", "dvt": "SP+SL", "khung": "> 02 mô hình", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "Các Phòng chuyên môn thực hiện"}, {"id": "PAR-009", "diem_toi_da": 1.0, "ma": "1.6.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Những giải pháp về chỉ đạo, điều hành của đơn vị trong thực hiện CCHC", "ten": "Thực hiện mệnh lệnh hành chính cấp trên", "loai": "CT&NV", "dvt": "SP+%", "khung": "1.0", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-010", "diem_toi_da": 0.5, "ma": "1.6.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Những giải pháp về chỉ đạo, điều hành của đơn vị trong thực hiện CCHC", "ten": "Xử lý thông tin phản ánh trên Cổng thông tin 1022", "loai": "CT&NV", "dvt": "SP+%", "khung": "- Tỷ lệ xử lý 100% - Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-011", "diem_toi_da": 0.5, "ma": "1.6.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Những giải pháp về chỉ đạo, điều hành của đơn vị trong thực hiện CCHC", "ten": "Tổ chức đánh giá, sơ kết, tổng kết công tác CCHC của đơn vị hằng năm", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-012", "diem_toi_da": 0.5, "ma": "1.6.4", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Những giải pháp về chỉ đạo, điều hành của đơn vị trong thực hiện CCHC", "ten": "Gắn kết quả thực hiện công tác CCHC với thi đua khen thưởng", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-013", "diem_toi_da": 0.5, "ma": "1.7.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Triển khai thực hiện một số chỉ đạo của UBND Thành phố về CCHC", "ten": "Triển khai thực hiện các văn bản chỉ đạo của UBND Thành phố về CCHC", "loai": "NV", "dvt": "SP", "khung": "Có/Không Đúng thời gian, Đủ SL", "chu_tri": "* Phòng Văn hóa - Xã hội & Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-014", "diem_toi_da": 0.5, "ma": "1.7.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Triển khai thực hiện một số chỉ đạo của UBND Thành phố về CCHC", "ten": "Tổ chức quán triệt kết quả các chỉ số của Thành phố: PAR INDEX, SIPAS, PAPI, PCI,... đến đội ngũ CBCCVC, người lao động tại cơ quan, đơn vị trực thuộc", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-015", "diem_toi_da": 0.5, "ma": "1.7.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Triển khai thực hiện một số chỉ đạo của UBND Thành phố về CCHC", "ten": "Thực hiện các giải pháp nâng cao hiệu quả các chỉ số của Thành phố (PAR INDEX, SIPAS, PAPI, PCI,...) theo chỉ đạo cấp trên", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": "Các cơ quan Phải thực hiện"}, {"id": "PAR-016", "diem_toi_da": 1.0, "ma": "1.8", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Triển khai thực hiện một số chỉ đạo của UBND Thành phố về CCHC", "ten": "Đối thoại của lãnh đạo xã, phường, đặc khu với người dân, doanh nghiệp", "loai": "CT&NV", "dvt": "SP+SL+%", "khung": "- >02 cuộc đối thoại; - VB chỉ đạo giải quyết kiến nghị. - >80% kiến nghị được xử lý", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-017", "diem_toi_da": 0.5, "ma": "2.1.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Xây dựng và tổ chức thực hiện văn bản quy phạm pháp luật (QPPL)", "ten": "Xây dựng văn bản QPPL được giao, quy định đảm bảo đúng tiến độ về thời gian", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không 100%", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-018", "diem_toi_da": 0.5, "ma": "2.1.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Xây dựng và tổ chức thực hiện văn bản quy phạm pháp luật (QPPL)", "ten": "Xây dựng văn bản QPPL đúng quy định của Luật ban hành văn bản QPPL", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không 100%", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-019", "diem_toi_da": 1.0, "ma": "2.2.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Theo dõi tình hình thi hành pháp luật", "ten": "Thực hiện báo cáo kết quả theo dõi tình hình thi hành pháp luật, theo dõi tình hình thi hành pháp luật trong lĩnh vực trọng tâm, liên ngành", "loai": "NV", "dvt": "SP", "khung": "Có/Không Thời gian", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-020", "diem_toi_da": 1.0, "ma": "2.2.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Theo dõi tình hình thi hành pháp luật", "ten": "Thực hiện các hoạt động về theo dõi tình hình thi hành pháp luật", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-021", "diem_toi_da": 1.0, "ma": "2.2.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Theo dõi tình hình thi hành pháp luật", "ten": "Xử lý kết quả theo dõi tình hình thi hành pháp luật", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-022", "diem_toi_da": 0.25, "ma": "2.3.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác rà soát văn bản QPPL", "ten": "Thực hiện công bố danh mục VBQPPL hết hiệu lực, ngưng hiệu lực", "loai": "NV", "dvt": "SP", "khung": "Có/Không Thời gian", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-023", "diem_toi_da": 0.75, "ma": "2.3.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác rà soát văn bản QPPL", "ten": "Kết quả sửa đổi, bổ sung, bãi bỏ toàn bộ hoặc một phần, thay thế, ban hành mới, đình chỉ việc thi hành một phần hoặc toàn bộ nội dung VBQPPL sau rà soát", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-024", "diem_toi_da": 0.5, "ma": "2.4", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác rà soát văn bản QPPL", "ten": "Xử lý văn bản trái pháp luật do cơ quan có thẩm quyền kiểm tra kiến nghị với cách tính điểm cụ thể như sau", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-025", "diem_toi_da": 0.5, "ma": "2.5", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác rà soát văn bản QPPL", "ten": "Gửi văn bản để cập nhật trên Cơ sở dữ liệu quốc gia về pháp luật", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-026", "diem_toi_da": 1.0, "ma": "3.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH THỦ TỤC HÀNH CHÍNH (TTHC)", "ten": "Ban hành và thực hiện đầy đủ các văn bản, Kế hoạch về kiểm soát TTHC, thực hiện cơ chế một cửa, một cửa liên thông", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-027", "diem_toi_da": 1.0, "ma": "3.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH THỦ TỤC HÀNH CHÍNH (TTHC)", "ten": "Thực hiện Báo cáo kiểm soát TTHC", "loai": "CT&NV", "dvt": "SP+SL", "khung": "Có/Không Thời gian", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-028", "diem_toi_da": 1.0, "ma": "3.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH THỦ TỤC HÀNH CHÍNH (TTHC)", "ten": "Tổ chức kiểm tra việc thực hiện các nhiệm vụ: công khai TTHC, hướng dẫn, tiếp nhận, giải   quyết, trả kết quả giải quyết; xử lý phản ánh, kiến nghị (PAKN) về TTHC", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không - >80%", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-029", "diem_toi_da": 1.0, "ma": "3.4", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH THỦ TỤC HÀNH CHÍNH (TTHC)", "ten": "Công khai TTHC thuộc thẩm quyền tiếp nhận tại Trung tâm phục vụ hành chính công cấp xã, Trang thông tin điện tử của đơn vị", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-030", "diem_toi_da": 1.0, "ma": "3.5", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH THỦ TỤC HÀNH CHÍNH (TTHC)", "ten": "Đề xuất cắt giảm, đơn giản hóa TTHC", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-031", "diem_toi_da": 0.5, "ma": "3.6.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện cơ chế một cửa, một cửa liên thông", "ten": "Tỷ lệ TTHC thực hiện việc tiếp nhận, trả kết quả tại Trung tâm phục vụ hành chính công cấp xã", "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-032", "diem_toi_da": 0.5, "ma": "3.6.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện cơ chế một cửa, một cửa liên thông", "ten": "Thực hiện tiếp nhận, giải quyết, trả kết quả giải quyết TTHC tuân thủ đúng quy trình nội bộ đã được Chủ tịch UBND Thành phố phê duyệt", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-033", "diem_toi_da": 3.0, "ma": "3.7.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Kết quả giải quyết hồ sơ TTHC", "ten": "Tỷ lệ hồ sơ TTHC tiếp nhận trong năm được giải quyết trước hạn, đúng hạn", "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "Các Phòng chuyên môn thực hiện"}, {"id": "PAR-034", "diem_toi_da": 1.0, "ma": "3.7.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Kết quả giải quyết hồ sơ TTHC", "ten": "Hồ sơ TTHC tạm dừng và trả lại trên Hệ thống thông tin giải quyết TTHC của Thành phố, Cổng Dịch vụ công quốc gia", "loai": "CT", "dvt": "%", "khung": "- 0%. - Tỷ lệ*điểm tối đa", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-035", "diem_toi_da": 0.5, "ma": "3.7.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Kết quả giải quyết hồ sơ TTHC", "ten": "Thực hiện “Xin lỗi” trong trường hợp trả kết quả hồ sơ trễ hạn", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "Các Phòng chuyên môn thực hiện"}, {"id": "PAR-036", "diem_toi_da": 0.5, "ma": "3.8.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Số hóa hồ sơ, kết quả giải quyết TTHC", "ten": "Tỷ lệ hồ sơ TTHC có cấp kết quả giải quyết bản điện tử", "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": "Các Phòng chuyên môn thực hiện"}, {"id": "PAR-037", "diem_toi_da": 1.0, "ma": "3.8.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Số hóa hồ sơ, kết quả giải quyết TTHC", "ten": "Tỷ lệ hồ sơ TTHC được tiếp nhận và số hóa hồ sơ", "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-038", "diem_toi_da": 0.5, "ma": "3.8.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Số hóa hồ sơ, kết quả giải quyết TTHC", "ten": "Kết quả số hóa bảo đảm các quy định dữ liệu điện tử và ký số", "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-039", "diem_toi_da": 0.5, "ma": "3.8.4", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Số hóa hồ sơ, kết quả giải quyết TTHC", "ten": "Khai thác, sử dụng lại thông tin, dữ liệu số hóa", "loai": "CT", "dvt": "%", "khung": ">55%", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-040", "diem_toi_da": 1.0, "ma": "3.9", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Số hóa hồ sơ, kết quả giải quyết TTHC", "ten": "Xử lý phản ánh kiến nghị (PAKN) của cá nhân, tổ chức về TTHC trên Cổng dịch vụ công Quốc gia", "loai": "CT", "dvt": "%", "khung": "1.0", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-041", "diem_toi_da": 1.0, "ma": "4.1.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện việc kiện toàn, sắp xếp tổ chức bộ máy theo đúng chỉ đạo của UBND thành phố", "ten": "Triển khai sắp xếp các tổ chức hành chính, đơn vị sự nghiệp trực thuộc theo quy định", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-042", "diem_toi_da": 1.0, "ma": "4.1.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện việc kiện toàn, sắp xếp tổ chức bộ máy theo đúng chỉ đạo của UBND thành phố", "ten": "Thực hiện việc trình ban hành quy định chức năng, nhiệm vụ, quyền hạn và cơ cấu tổ chức của cơ quan và các tổ chức hành chính, đơn vị sự nghiệp trực thuộc", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "\"Mỗi CQ, ĐV chủ trì Theo chức năng/LV\", Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-043", "diem_toi_da": 1.0, "ma": "4.2.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện quy định về lãnh đạo, quản lý", "ten": "Thực hiện việc sắp xếp lãnh đạo, quản lý trong cơ quan, tổ chức hành chính", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-044", "diem_toi_da": 1.0, "ma": "4.2.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện quy định về lãnh đạo, quản lý", "ten": "Thực hiện việc sắp xếp lãnh đạo, quản lý trong đơn vị sự nghiệp công lập của xã, phường, đặc khu", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-045", "diem_toi_da": 2.0, "ma": "4.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện quy định về lãnh đạo, quản lý", "ten": "Thực hiện các quy định về biên chế, số lượng người làm việc", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-046", "diem_toi_da": 1.0, "ma": "4.4.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Tham mưu thực hiện phân cấp, ủy quyền đối với các nội dung thuộc phạm vi quản lý", "ten": "Thực hiện các nhiệm vụ được phân cấp, ủy quyền theo ngành, lĩnh vực do cấp có thẩm quyền ban hành", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không 100%", "chu_tri": "\"Mỗi CQ, ĐV chủ trì Theo chức năng/LV\"", "ghi_chu": null}, {"id": "PAR-047", "diem_toi_da": 1.0, "ma": "4.4.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Tham mưu thực hiện phân cấp, ủy quyền đối với các nội dung thuộc phạm vi quản lý", "ten": "Rà soát, đề xuất UBND Thành phố phân cấp, ủy quyền", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "\"Mỗi CQ, ĐV chủ trì Theo chức năng/LV\"", "ghi_chu": null}, {"id": "PAR-048", "diem_toi_da": 1.0, "ma": "4.4.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Tham mưu thực hiện phân cấp, ủy quyền đối với các nội dung thuộc phạm vi quản lý", "ten": "Việc tổ chức kiểm tra các nội dung, lĩnh vực thuộc ngành, lĩnh vực quản lý đã được phân cấp, ủy quyền cho địa phương", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "\"Mỗi CQ, ĐV chủ trì Theo chức năng/LV\"", "ghi_chu": null}, {"id": "PAR-049", "diem_toi_da": 1.0, "ma": "4.4.4", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Tham mưu thực hiện phân cấp, ủy quyền đối với các nội dung thuộc phạm vi quản lý", "ten": "Xử lý các vấn đề về phân cấp, ủy quyền phát hiện qua kiểm tra", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "\"Mỗi CQ, ĐV chủ trì Theo chức năng/LV\"", "ghi_chu": null}, {"id": "PAR-050", "diem_toi_da": 1.0, "ma": "5.1.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện cơ cấu công chức, viên chức theo vị trí việc làm", "ten": "Xây dựng Đề án vị trí việc làm hoặc Đề án điều chỉnh Đề án vị trí của cơ quan và các đơn vị hành chính, đơn vị sự nghiệp trực thuộc trong trường hợp có sự thay đổi về tổ chức bộ máy trong năm đánh giá", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-051", "diem_toi_da": 0.5, "ma": "5.1.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện cơ cấu công chức, viên chức theo vị trí việc làm", "ten": "Bố trí công chức trong cơ quan, tổ chức hành chính trực thuộc theo vị trí việc làm đã được phê duyệt", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không 100%", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-052", "diem_toi_da": 0.5, "ma": "5.1.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện cơ cấu công chức, viên chức theo vị trí việc làm", "ten": "Bố trí viên chức trong các đơn vị sự nghiệp trực thuộc theo vị trí việc làm đã được phê duyệt", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không 100%", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-053", "diem_toi_da": 0.5, "ma": "5.2.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện tuyển dụng quản lý sử dụng công chức, viên chức", "ten": "Ban hành quyết định tuyển dụng, xếp lương, bổ nhiệm ngạch cho công chức, viên chức theo đúng quy định", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-054", "diem_toi_da": 1.0, "ma": "5.2.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện tuyển dụng quản lý sử dụng công chức, viên chức", "ten": "Thực hiện việc nâng bậc lương, phụ cấp thâm niên và giải quyết chế độ chính sách cho công chức, viên chức", "loai": "NV", "dvt": "SP", "khung": "Có/Không Thời gian", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-055", "diem_toi_da": 1.0, "ma": "5.2.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện tuyển dụng quản lý sử dụng công chức, viên chức", "ten": "Thực hiện quy định về bổ nhiệm, bổ nhiệm lại vị trí lãnh đạo cấp phòng (hoặc tương đương)", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-056", "diem_toi_da": 1.0, "ma": "5.3.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Đào tạo, bồi dưỡng công chức, viên chức", "ten": "Mức độ hoàn thành tổ chức các lớp đào tạo, bồi dưỡng", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không 100%", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-057", "diem_toi_da": 1.0, "ma": "5.3.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Đào tạo, bồi dưỡng công chức, viên chức", "ten": "Tiến độ thực hiện tổ chức các lớp đào tạo, bồi dưỡng", "loai": "NV", "dvt": "SP", "khung": "Có/Không Thời gian", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-058", "diem_toi_da": 1.0, "ma": "5.3.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Đào tạo, bồi dưỡng công chức, viên chức", "ten": "Tham gia đầy đủ, đúng thành phần các lớp đào tạo, bồi dưỡng do Thành phố tổ chức", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-059", "diem_toi_da": 0.75, "ma": "5.4.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện chính sách tinh giản biên chế", "ten": "Xây dựng Kế hoạch tinh giản biên chế hàng năm theo hướng dẫn của Sở Nội vụ", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-060", "diem_toi_da": 0.75, "ma": "5.4.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện chính sách tinh giản biên chế", "ten": "Mục tiêu tinh giản biên chế trong năm", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-061", "diem_toi_da": 1.0, "ma": "5.5", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Thực hiện chính sách tinh giản biên chế", "ten": "Chấp hành kỷ luật, kỷ cương hành chính của CCVC", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-062", "diem_toi_da": 1.0, "ma": "6.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH TÀI CHÍNH CÔNG", "ten": "Xây dựng, công khai dự toán và quyết toán tài chính hàng năm theo quy định", "loai": "NV", "dvt": "SP", "khung": "Có/Không Thời gian", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-063", "diem_toi_da": 1.0, "ma": "6.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH TÀI CHÍNH CÔNG", "ten": "Báo cáo đánh giá hiệu quả của việc thực hiện cơ chế tự chủ tài chính đối với cơ quan hành chính nhà nước và các đơn vị sự nghiệp công lập", "loai": "NV", "dvt": "SP", "khung": "Có/Không Thời gian", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-064", "diem_toi_da": 1.0, "ma": "6.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH TÀI CHÍNH CÔNG", "ten": "Kết quả chi thu nhập tăng thêm", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không >=1,5", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-065", "diem_toi_da": 1.0, "ma": "6.4", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH TÀI CHÍNH CÔNG", "ten": "Công khai Chương trình thực hành tiết kiệm, chống lãng phí; kết quả thực hành tiết kiệm; hành vi lãng phí và kết quả xử lý hành vi lãng phí", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-066", "diem_toi_da": 1.0, "ma": "6.5", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "CẢI CÁCH TÀI CHÍNH CÔNG", "ten": "Tổ chức thực hiện các kiến nghị sau thanh tra, kiểm tra, kiểm toán nhà nước về tài chính, ngân sách", "loai": "NV", "dvt": "SP", "khung": "Có/Không", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-067", "diem_toi_da": 0.5, "ma": "6.6.1", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác quản lý, sử dụng tài sản công", "ten": "Ban hành quy chế quản lý, sử dụng tài sản công của các cơ quan, đơn vị thuộc phạm vi quản lý", "loai": "NV", "dvt": "SP", "khung": "Có/Không Thời gian", "chu_tri": "\"Mỗi CQ, ĐV chủ trì Theo chức năng/LV\"", "ghi_chu": null}, {"id": "PAR-068", "diem_toi_da": 0.75, "ma": "6.6.2", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác quản lý, sử dụng tài sản công", "ten": "Tổ chức thực hiện các quy định về quản lý, sử dụng tài sản công", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không 100%", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-069", "diem_toi_da": 0.75, "ma": "6.6.3", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác quản lý, sử dụng tài sản công", "ten": "Thực hiện quy định về sắp xếp lại, xử lý nhà, đất thuộc thẩm quyền quản lý", "loai": "CT&NV", "dvt": "SP+%", "khung": "Có/Không >=80%", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-070", "diem_toi_da": 1.0, "ma": "6.7", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác quản lý, sử dụng tài sản công", "ten": "Giải ngân vốn đầu tư công", "loai": "CT", "dvt": "%", "khung": ">95%", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-071", "diem_toi_da": 14.0, "ma": "7", "phan": "ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN CẢI CÁCH HÀNH CHÍNH (CCHC)", "linh_vuc": "Công tác quản lý, sử dụng tài sản công", "ten": "CHUYỂN ĐỔI SỐ TRONG CÁC CƠ QUAN NHÀ NƯỚC", "loai": "", "dvt": "", "khung": "", "chu_tri": "Phòng Văn hóa - Xã hội", "ghi_chu": null}, {"id": "PAR-072", "diem_toi_da": 10.0, "ma": "1", "phan": "ĐÁNH GIÁ TÁC ĐỘNG CỦA CÔNG TÁC CCHC", "linh_vuc": "", "ten": "Khảo sát mức độ hài lòng của người dân, tổ chức đối với sự phục vụ của cơ quan hành chính nhà nước trên địa bàn Thành phố", "loai": "NV", "dvt": "SP", "khung": "", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-073", "diem_toi_da": 10.0, "ma": "2", "phan": "ĐÁNH GIÁ TÁC ĐỘNG CỦA CÔNG TÁC CCHC", "linh_vuc": "", "ten": "Khảo sát ý kiến đánh giá của đại biểu HĐND TP, lãnh đạo của các sở, ban, ngành và UBND cấp xã; Trưởng các phòng chuyên môn trực thuộc sở, ban, ngành, UBND cấp xã; đối tượng khác phù hợp với đặc thù của đơn vị", "loai": "NV", "dvt": "SP", "khung": "", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-074", "diem_toi_da": 1.0, "ma": "1.1", "phan": "ĐIỂM THƯỞNG, ĐIỂM TRỪ TRONG CÔNG TÁC CCHC (Tối đa 04 điểm)", "linh_vuc": "Điểm thưởng", "ten": "Kết quả khảo sát mức độ hài lòng của người dân, tổ chức đối với sự phục vụ của cơ quan hành chính nhà nước trên địa bàn Thành phố (tại Mục II.1) của địa phương đạt từ 98% trở lên", "loai": "", "dvt": "", "khung": "", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-075", "diem_toi_da": 1.0, "ma": "1.2", "phan": "ĐIỂM THƯỞNG, ĐIỂM TRỪ TRONG CÔNG TÁC CCHC (Tối đa 04 điểm)", "linh_vuc": "Điểm thưởng", "ten": "Kết quả chi thu nhập tăng thêm bình quân 1 người/tháng tăng từ 1,5 lần trở lên so với mức tiền lương cơ sở", "loai": "", "dvt": "", "khung": "", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-076", "diem_toi_da": 1.0, "ma": "1.3", "phan": "ĐIỂM THƯỞNG, ĐIỂM TRỪ TRONG CÔNG TÁC CCHC (Tối đa 04 điểm)", "linh_vuc": "Điểm thưởng", "ten": "Mô hình, sáng kiến được nhân rộng trên địa bàn Thành phố", "loai": "", "dvt": "", "khung": "", "chu_tri": "\"Mỗi CQ, ĐV chủ trì Theo chức năng/LV\", Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-077", "diem_toi_da": 1.0, "ma": "1.4", "phan": "ĐIỂM THƯỞNG, ĐIỂM TRỪ TRONG CÔNG TÁC CCHC (Tối đa 04 điểm)", "linh_vuc": "Điểm thưởng", "ten": "Tỷ lệ giải quyết TTHC sớm hạn đạt từ 50% hồ sơ/tổng hồ sơ", "loai": "", "dvt": "", "khung": "", "chu_tri": "Trung tâm Phục vụ HCC", "ghi_chu": null}, {"id": "PAR-078", "diem_toi_da": -1.0, "ma": "2.1", "phan": "ĐIỂM THƯỞNG, ĐIỂM TRỪ TRONG CÔNG TÁC CCHC (Tối đa 04 điểm)", "linh_vuc": "Điểm trừ", "ten": "Thực hiện không tốt các nội dung về quản lý, có đơn thư tố cáo, kiến nghị đúng sự thật về thái độ, hành vi nhũng nhiễu, sai phạm trong công vụ của CBCCVC trong đơn vị để cơ quan cấp trên phát hiện, báo đài và các phương tiện truyền thông phản ánh đúng sự thật", "loai": "", "dvt": "", "khung": "", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-079", "diem_toi_da": -1.0, "ma": "2.2", "phan": "ĐIỂM THƯỞNG, ĐIỂM TRỪ TRONG CÔNG TÁC CCHC (Tối đa 04 điểm)", "linh_vuc": "Điểm trừ", "ten": "Tỷ lệ thực hiện giải ngân Kế hoạch đầu tư vốn ngân sách nhà nước dưới 95%", "loai": "", "dvt": "", "khung": "", "chu_tri": "Phòng Kinh tế", "ghi_chu": null}, {"id": "PAR-080", "diem_toi_da": -1.0, "ma": "2.3", "phan": "ĐIỂM THƯỞNG, ĐIỂM TRỪ TRONG CÔNG TÁC CCHC (Tối đa 04 điểm)", "linh_vuc": "Điểm trừ", "ten": "Không hoàn thành các chỉ tiêu Kinh tế - Xã hội được HĐND cấp xã giao", "loai": "", "dvt": "", "khung": "", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}, {"id": "PAR-081", "diem_toi_da": -1.0, "ma": "2.4", "phan": "ĐIỂM THƯỞNG, ĐIỂM TRỪ TRONG CÔNG TÁC CCHC (Tối đa 04 điểm)", "linh_vuc": "Điểm trừ", "ten": "Đơn vị hoặc lãnh đạo bị lãnh đạo Thành ủy, HĐND TP, UBND TP phê bình về chất lượng quản lý, điều hành, giải quyết ý kiến của cá nhân, tổ chức", "loai": "", "dvt": "", "khung": "", "chu_tri": "Vp HĐND & UBND xã", "ghi_chu": null}];
+const DON_VI_LIST = ["Văn phòng Đảng ủy Xã Phước Hải", "Ban Xây dựng Đảng ủy Xã Phước Hải", "Cơ quan Ủy ban Kiểm tra Đảng ủy Xã Phước Hải", "Vp HĐND & UBND xã", "Phòng Văn hóa - Xã hội", "Phòng Kinh tế", "Trung tâm Phục vụ HCC", "Công an xã", "Trạm Y tế", "Trung tâm Cung ứng DVC", "Ban QLDA ĐTXD", "Ban CH Quân sự xã", "Ủy ban Mặt trận Tổ quốc Việt Nam xã", "Tổ Công nghệ số cộng đồng ấp", "Ban Điều hành ấp"];
+const DV_DATA = [{"ten": "Văn phòng Đảng ủy Xã Phước Hải", "ten_gon": null}, {"ten": "Ban Xây dựng Đảng ủy Xã Phước Hải", "ten_gon": null}, {"ten": "Cơ quan Ủy ban Kiểm tra Đảng ủy Xã Phước Hải", "ten_gon": null}, {"ten": "Văn phòng Hội đồng nhân dân và Ủy ban nhân dân xã", "ten_gon": "Vp HĐND & UBND xã"}, {"ten": "Phòng Văn hóa - Xã hội", "ten_gon": "Phòng Văn hóa - Xã hội"}, {"ten": "Phòng Kinh tế", "ten_gon": "Phòng Kinh tế"}, {"ten": "Trung tâm Phục vụ Hành chính công xã", "ten_gon": "Trung tâm Phục vụ HCC"}, {"ten": "Công an xã Phước Hải", "ten_gon": "Công an xã"}, {"ten": "Trạm Y tế xã Phước Hải", "ten_gon": "Trạm Y tế"}, {"ten": "Trung tâm Cung ứng dịch vụ công xã Phước Hải", "ten_gon": "Trung tâm Cung ứng DVC"}, {"ten": "Ban Quản lý dự án đầu tư xây dựng xã Phước Hải", "ten_gon": "Ban QLDA ĐTXD"}, {"ten": "Ban Chỉ huy Quân sự xã", "ten_gon": "Ban CH Quân sự xã"}, {"ten": "Ủy ban Mặt trận Tổ quốc Việt Nam xã", "ten_gon": null}, {"ten": "Tổ Công nghệ số cộng đồng ấp", "ten_gon": null}, {"ten": "Ban Điều hành ấp", "ten_gon": null}];
+
+</script>
+<script>
+// ====================== STATE & STORAGE ======================
+// ⚙️ CẤU HÌNH: Dán URL Web App Google Apps Script vào đây
+// Mutable copies — overridden by Sheets if configured
+let dtiCriteria = DTI_DATA.map(x => Object.assign({}, x));
+let parCriteria = PAR_DATA.map(x => Object.assign({}, x));
+let criteriaModified = false;
+let critActiveSource = 'DTI';
+
+// Hướng dẫn: https://script.google.com > Deploy > New deployment > Web App
+// URL Web App lưu trong localStorage — không cần sửa file HTML
+const LS_URL_KEY = 'phuochai-webapp-url';
+
+const STATUS_LABEL = { chua: 'Chưa triển khai', dangtrienkhai: 'Đang triển khai', hoanthanh: 'Hoàn thành', khongdat: 'Không đạt / quá hạn' };
+const STALE_DAYS = 45;
+
+let statusMap = {};
+let updaterName = '';
+let activeTab = 'dashboard';
+let search = '';
+let statusFilter = 'all';
+let donViFilter = 'all';
+let collapsedGroups = {};
+let openDetails = {};
+let saveTimer = null;
+let syncTimer = null;
+let lastSyncAt = null;
+let SYNC_INTERVAL_MS = 90000;
+
+// ---------- Quản lý URL cấu hình ----------
+function getWebAppUrl() {
+  return (localStorage.getItem(LS_URL_KEY) || '').trim();
+}
+function setWebAppUrl(url) {
+  localStorage.setItem(LS_URL_KEY, url.trim());
+}
+function isConfigured() {
+  const u = getWebAppUrl();
+  return u.startsWith('https://script.google.com/');
+}
+
+// ---------- API calls ----------
+async function apiCall(params) {
+  if (!isConfigured()) throw new Error('NOT_CONFIGURED');
+  const url = getWebAppUrl() + '?' + new URLSearchParams(params).toString();
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'Lỗi server');
+  return json.data;
+}
+
+async function apiPost(body) {
+  if (!isConfigured()) throw new Error('NOT_CONFIGURED');
+  var _b = Object.assign({}, body);
+  if(currentUser&&currentUser.adminToken) _b._adminToken=currentUser.adminToken;
+  if(currentUser&&currentUser.idToken)    _b._idToken=currentUser.idToken;
+  const res = await fetch(getWebAppUrl(), {
+    method: 'POST',
+    body: JSON.stringify(_b),
+    headers: { 'Content-Type': 'text/plain' }
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'Lỗi server');
+  return json.data;
+}
+
+function getStatus(id){
+  return statusMap[id] || { status: 'chua', progress: 0, result: '', note: '', updatedAt: null, updatedBy: '' };
+}
+function setStatus(id,patch){const cur=getStatus(id);statusMap[id]=Object.assign({},cur,patch,{updatedAt:Date.now(),updatedBy:updaterName||cur.updatedBy||''});saveLocalCache();const item=allItems().find(it=>it.id===id);apiUpdateRow(id,item?item.source:'',statusMap[id]);scheduleSave();}
+
+async function loadAll(){
+  // Luôn thử load từ localStorage trước (cache cục bộ) để hiện nhanh
+  const cached = localStorage.getItem('phuochai-cache');
+  if (cached) {
+    try {
+      const c = JSON.parse(cached);
+      statusMap = c.statusMap || {};
+      updaterName = c.updaterName || '';
+    } catch(e) {}
+  }
+  // Sau đó đồng bộ từ Google Sheets
+  if (isConfigured()) {
+    await syncFromServer();
+  }
+  if(isConfigured()){try{await loadCriteriaFromServer();}catch(e){}}
+  startAutoSync();
+}
+
+async function syncFromServer() {
+  try {
+    setSaveState('syncing');
+    const data = await apiCall({ action: 'getData', sheet: 'ALL' });
+    if (data && data.statusMap) {
+      // Merge: ưu tiên bản mới hơn theo updatedAt
+      Object.keys(data.statusMap).forEach(id => {
+        const server = data.statusMap[id];
+        const local  = statusMap[id];
+        if (!local || !local.updatedAt || (server.updatedAt && server.updatedAt > local.updatedAt)) {
+          statusMap[id] = server;
+        }
+      });
+    }
+    if (data && data.updaterName && !updaterName) {
+      updaterName = data.updaterName;
+    }
+    lastSyncAt = Date.now();
+    saveLocalCache();
+    setSaveState('synced');
+    renderActiveTab();
+  } catch(e) {
+    setSaveState('offline');
+  }
+}
+
+function saveLocalCache() {
+  try {
+    localStorage.setItem('phuochai-cache', JSON.stringify({ statusMap, updaterName, cachedAt: Date.now() }));
+  } catch(e) {}
+}
+
+function startAutoSync() {
+  if (syncTimer) clearInterval(syncTimer);
+  if (!isConfigured()) return;
+  syncTimer = setInterval(async () => {
+    await syncFromServer();
+    updateSyncBadge();
+  }, SYNC_INTERVAL_MS);
+}
+
+function updateSyncBadge() {
+  const el = document.getElementById('syncInfo');
+  if (!el || !lastSyncAt) return;
+  const sec = Math.round((Date.now() - lastSyncAt) / 1000);
+  el.textContent = 'Đồng bộ: ' + (sec < 5 ? 'Vừa xong' : sec + 'g trước');
+}
+
+function setSaveState(state){
+  const dot = document.getElementById('saveDot');
+  const txt = document.getElementById('saveText');
+  if (!dot || !txt) return;
+  const states = {
+    saving:  { cls: 'saving', lbl: 'Đang lưu...' },
+    saved:   { cls: 'saved',  lbl: isConfigured() ? 'Đã lưu → Google Sheets' : 'Đã lưu (máy này)' },
+    syncing: { cls: 'saving', lbl: 'Đang đồng bộ...' },
+    synced:  { cls: 'saved',  lbl: 'Đã đồng bộ ✓' },
+    offline: { cls: '',       lbl: 'Ngoại tuyến — dữ liệu tạm lưu cục bộ' },
+    error:   { cls: '',       lbl: 'Lỗi lưu — thử lại' },
+    idle:    { cls: '',       lbl: isConfigured() ? 'Đã kết nối Google Sheets' : 'Chưa cấu hình (lưu cục bộ)' }
+  };
+  const s = states[state] || states.idle;
+  dot.className = 'save-dot' + (s.cls ? ' ' + s.cls : '');
+  txt.textContent = s.lbl;
+}
+
+// OFFLINE QUEUE
+let syncQueue=[];let isOnline=navigator.onLine;
+window.addEventListener('online',()=>{isOnline=true;flushSyncQueue();});
+window.addEventListener('offline',()=>{isOnline=false;});
+function queueUpdate(id,source,s){syncQueue=syncQueue.filter(q=>q.id!==id);syncQueue.push({id,source,status:s.status,progress:s.progress,result:s.result,note:s.note});localStorage.setItem('phuochai-syncqueue',JSON.stringify(syncQueue));}
+async function flushSyncQueue(){if(!isConfigured()||syncQueue.length===0)return;const items=[...syncQueue];syncQueue=[];localStorage.removeItem('phuochai-syncqueue');for(const item of items){try{await apiPost({action:'updateRow',id:item.id,source:item.source,status:item.status,progress:item.progress,result:item.result,note:item.note,updaterName});}catch(e){syncQueue.push(item);}}if(syncQueue.length>0)localStorage.setItem('phuochai-syncqueue',JSON.stringify(syncQueue));}
+async function apiUpdateRow(id,source,s){if(!isConfigured()){setSaveState('saved');return;}if(!isOnline){queueUpdate(id,source,s);setSaveState('offline');return;}try{await apiPost({action:'updateRow',id,source,status:s.status,progress:s.progress,result:s.result,note:s.note,updaterName});setSaveState('saved');lastSyncAt=Date.now();updateSyncBadge();flushSyncQueue();}catch(e){queueUpdate(id,source,s);setSaveState('offline');}}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{saveLocalCache();renderActiveTab();},400);}
+
+async function saveUpdaterName(v){
+  updaterName = v;
+  saveLocalCache();
+  if (isConfigured()) {
+    try { await apiPost({ action: 'saveUpdater', name: v }); } catch(e) {}
+  }
+}
+
+// ====================== HELPERS ======================
+function daysAgo(ts){ if(!ts) return null; return Math.floor((Date.now()-ts)/86400000); }
+function fmtAgo(ts){
+  if(!ts) return 'Chưa từng cập nhật';
+  const d = daysAgo(ts);
+  if(d===0) return 'Hôm nay';
+  if(d===1) return '1 ngày trước';
+  return d + ' ngày trước';
+}
+function isStale(item){
+  const s = getStatus(item.id);
+  if(s.status==='hoanthanh') return false;
+  if(!s.updatedAt) return true;
+  return daysAgo(s.updatedAt) > STALE_DAYS;
+}
+function norm(s){ return (s||'').toString().toLowerCase(); }
+
+function allItems(){
+  return dtiCriteria.map(it=>Object.assign({source:'DTI'}, it))
+    .concat(parCriteria.map(it=>Object.assign({source:'PAR'}, it)));
+}
+
+function groupBy(items, keyFn){
+  const map = new Map();
+  items.forEach(it=>{
+    const k = keyFn(it) || 'Khác';
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push(it);
+  });
+  return map;
+}
+
+function matchesFilters(item){
+  const s=getStatus(item.id);
+  if(donViFilter!=='all'&&(item.chu_tri||'Chưa phân công')!==donViFilter)return false;
+  if(statusFilter !== 'all'){
+    if(statusFilter === 'stale'){ if(!isStale(item)) return false; }
+    else if(s.status !== statusFilter) return false;
+  }
+  if(search){
+    const q = norm(search);
+    const hay = norm(item.ten) + ' ' + norm(item.chu_tri) + ' ' + norm(item.id) + ' ' + norm(item.ma||'');
+    if(!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+// ====================== AGGREGATES ======================
+function computeDTIScore(){
+  let earned = 0, max = 0;
+  DTI_DATA.forEach(it=>{
+    const s = getStatus(it.id);
+    max += it.diem_toi_da || 0;
+    earned += (it.diem_toi_da || 0) * (Math.min(100, s.progress||0) / 100);
+  });
+  return { earned: Math.round(earned*10)/10, max };
+}
+function computeDTIByGroup(){
+  const groups = groupBy(DTI_DATA, it=>it.nhom);
+  const out = [];
+  groups.forEach((items, nhom)=>{
+    let earned=0, max=0;
+    items.forEach(it=>{
+      const s = getStatus(it.id);
+      max += it.diem_toi_da||0;
+      earned += (it.diem_toi_da||0) * (Math.min(100,s.progress||0)/100);
+    });
+    out.push({ nhom, earned: Math.round(earned*10)/10, max });
+  });
+  return out;
+}
+function computePARCompletion(){
+  let done=0, inprog=0, total=PAR_DATA.length;
+  PAR_DATA.forEach(it=>{
+    const s = getStatus(it.id);
+    if(s.status==='hoanthanh') done++;
+    else if(s.status==='dangtrienkhai') inprog++;
+  });
+  return { done, inprog, total, pct: total? Math.round(done/total*1000)/10 : 0 };
+}
+function computePARByLinhVuc(){
+  const items = PAR_DATA.filter(it=>it.phan && it.phan.indexOf('ĐÁNH GIÁ KẾT QUẢ')===0);
+  const groups = groupBy(items, it=>it.linh_vuc);
+  const out = [];
+  groups.forEach((arr, lv)=>{
+    let done=0;
+    arr.forEach(it=>{ if(getStatus(it.id).status==='hoanthanh') done++; });
+    out.push({ linh_vuc: lv, done, total: arr.length });
+  });
+  return out;
+}
+function computeStaleCount(){
+  return allItems().filter(isStale).length;
+}
+function computeByDonVi(){
+  const items = allItems();
+  const groups = groupBy(items, it=>it.chu_tri || 'Chưa phân công');
+  const out = [];
+  groups.forEach((arr, dv)=>{
+    let done=0, prog=0, chua=0, stale=0;
+    arr.forEach(it=>{
+      const s = getStatus(it.id);
+      if(s.status==='hoanthanh') done++;
+      else if(s.status==='dangtrienkhai') prog++;
+      else chua++;
+      if(isStale(it)) stale++;
+    });
+    out.push({ dv, items: arr, done, prog, chua, stale, total: arr.length });
+  });
+  return out.sort((a,b)=> (b.total-b.done) - (a.total-a.done));
+}
+
+// ====================== RENDER: SHARED ITEM ROW ======================
+function statusOptionsHtml(current){
+  return Object.keys(STATUS_LABEL).map(k=>`<option value="${k}" ${k===current?'selected':''}>${STATUS_LABEL[k]}</option>`).join('');
+}
+
+function renderItemRow(item){
+  const s = getStatus(item.id);
+  const stale = isStale(item);
+  const earnedTxt = item.diem_toi_da!=null
+    ? `<span class="badge badge--max">${ (Math.min(100,s.progress||0)/100*item.diem_toi_da).toFixed(1) } / ${item.diem_toi_da} đ</span>`
+    : '';
+  return `
+  <div class="item-row" data-id="${item.id}">
+    <div class="item-row__top" data-toggle="${item.id}">
+      <div class="item-row__title">
+        <span class="item-code mono">${item.ma || item.id}</span>
+        <span class="item-name">${item.ten}</span>
+      </div>
+      <div class="item-row__right">
+        ${item.loai ? `<span class="badge">${item.loai}</span>` : ''}
+        ${earnedTxt}
+        <span class="status-pill" data-s="${s.status}">${STATUS_LABEL[s.status]}</span>
+        <span class="chevron" id="chev-${item.id}">${openDetails[item.id]?'▴':'▾'}</span>
+      </div>
+    </div>
+    <div class="item-detail ${openDetails[item.id]?'open':''}" id="detail-${item.id}">
+      ${item.khung ? `<div class="item-detail__criteria"><b>Khung đánh giá:</b> ${item.khung}${item.ghi_chu? ' · '+item.ghi_chu : ''}</div>` : (item.ghi_chu? `<div class="item-detail__criteria">${item.ghi_chu}</div>`:'')}
+      <div class="field-grid">
+        <div class="field">
+          <label>Chủ trì</label>
+          <input type="text" value="${item.chu_tri||'Chưa phân công'}" disabled />
+        </div>
+        <div class="field">
+          <label>Trạng thái</label>
+          <input type="text" value="${STATUS_LABEL[s.status]}" disabled />
+        </div>
+        <div class="field">
+          <label>Tiến độ (%)</label>
+          <input type="text" value="${s.progress||0}%" disabled />
+        </div>
+        <div class="field field--wide">
+          <label>Kết quả / số liệu</label>
+          <input type="text" value="${(s.result||'—').replace(/"/g,'&quot;')}" disabled />
+        </div>
+      </div>
+      <div class="item-footrow">
+        <span class="${stale?'stale-flag':''}">${stale?'⚠ ':''}Cập nhật lần cuối: ${fmtAgo(s.updatedAt)}${s.updatedBy? ' · bởi '+s.updatedBy:''}</span>
+        ${canUpdate()?`<button class="btn-primary" style="padding:6px 14px;font-size:11.5px;border-radius:6px;" data-act="openupdate" data-id="${item.id}">✎ Cập nhật tiến độ</button>`:`<span style="font-size:11px;color:var(--ink-faint)">🔒 Đăng nhập để cập nhật</span>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderGroupedItems(items, groupKeyFn, groupExtra){
+  const groups = groupBy(items, groupKeyFn);
+  let html = '';
+  groups.forEach((arr, gname)=>{
+    const visible = arr.filter(matchesFilters);
+    if(visible.length===0) return;
+    const done = arr.filter(it=>getStatus(it.id).status==='hoanthanh').length;
+    const gid = 'g-' + gname.replace(/[^a-zA-Z0-9]/g,'').slice(0,24) + '-' + arr[0].id;
+    const collapsed = collapsedGroups[gid];
+    html += `<div class="group">
+      <div class="group__head" data-grouptoggle="${gid}">
+        <h3>${gname}${groupExtra? ' · '+groupExtra(arr):''}</h3>
+        <span class="meta">${done}/${arr.length} hoàn thành</span>
+      </div>
+      <div class="group__body ${collapsed?'collapsed':''}" id="${gid}">
+        ${visible.map(renderItemRow).join('')}
+      </div>
+    </div>`;
+  });
+  return html || '<div class="empty">Không có chỉ tiêu phù hợp với bộ lọc hiện tại.</div>';
+}
+
+// ====================== RENDER: TABS ======================
+function renderToolbar(){
+  return `<div class="toolbar">
+    <input class="search-input" id="searchInput" placeholder="Tìm theo tên chỉ tiêu, mã, đơn vị chủ trì..." value="${search}" />
+    <select class="chip" id="donViFilterSelect"><option value='all'>Tất cả đơn vị</option></select>
+    <select class="chip" id="statusFilterSelect">
+      <option value="all" ${statusFilter==='all'?'selected':''}>Tất cả trạng thái</option>
+      <option value="chua" ${statusFilter==='chua'?'selected':''}>Chưa triển khai</option>
+      <option value="dangtrienkhai" ${statusFilter==='dangtrienkhai'?'selected':''}>Đang triển khai</option>
+      <option value="hoanthanh" ${statusFilter==='hoanthanh'?'selected':''}>Hoàn thành</option>
+      <option value="khongdat" ${statusFilter==='khongdat'?'selected':''}>Không đạt / quá hạn</option>
+      <option value="stale" ${statusFilter==='stale'?'selected':''}>⚠ Quá ${STALE_DAYS} ngày chưa cập nhật</option>
+    </select>
+  </div>`;
+}
+
+function ringSvg(pct, size, stroke){
+  size = size||64; stroke = stroke||7;
+  const r = (size-stroke)/2, c = 2*Math.PI*r;
+  const off = c * (1-Math.min(100,pct)/100);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#edeff3" stroke-width="${stroke}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#b8862e" stroke-width="${stroke}"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round" transform="rotate(-90 ${size/2} ${size/2})"/>
+  </svg>`;
+}
+
+function renderDashboard(){
+  const dti = computeDTIScore();
+  const par = computePARCompletion();
+  const stale = computeStaleCount();
+  const byDv = computeByDonVi();
+  const dvPending = byDv.filter(d=>d.total-d.done>0).length;
+  const dtiPct = dti.max? dti.earned/dti.max*100 : 0;
+
+  const dtiGroups = computeDTIByGroup();
+  const parLv = computePARByLinhVuc();
+
+  document.getElementById('sealRing').setAttribute('stroke-dasharray', (dtiPct/100*131.9).toFixed(1)+' 1000');
+
+  return `
+  <div class="panel">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-card__label">Điểm DTI cấp xã ước tính</div>
+        <div class="kpi-ring">${ringSvg(dtiPct,56,7)}
+          <div class="kpi-card__value">${dti.earned}<small>/ ${dti.max} đ</small></div>
+        </div>
+        <div class="kpi-card__foot">Dựa trên tiến độ % đã nhập cho 43 chỉ số DTI.Xã</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">PAR INDEX — tỷ lệ hoàn thành</div>
+        <div class="kpi-card__value">${par.pct}<small>%</small></div>
+        <div class="kpi-card__foot">${par.done}/${par.total} nội dung hoàn thành · ${par.inprog} đang triển khai</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">Cần cập nhật gấp</div>
+        <div class="kpi-card__value" style="color:var(--overdue)">${stale}<small>/ ${DTI_DATA.length+PAR_DATA.length} mục</small></div>
+        <div class="kpi-card__foot">Chưa cập nhật quá ${STALE_DAYS} ngày hoặc chưa từng nhập liệu</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__label">Đơn vị còn việc tồn đọng</div>
+        <div class="kpi-card__value">${dvPending}<small>/ ${byDv.length} đơn vị</small></div>
+        <div class="kpi-card__foot">Đơn vị có chỉ tiêu/nhiệm vụ chưa hoàn thành</div>
+      </div>
+    </div>
+
+    <div class="bars">
+      <h3 class="serif">DTI cấp xã theo nhóm chỉ số (điểm ước tính / điểm tối đa)</h3>
+      ${dtiGroups.map(g=>`<div class="bar-row">
+        <div class="bar-row__label">${g.nhom}</div>
+        <div class="bar-row__track"><div class="bar-row__fill" style="width:${g.max? (g.earned/g.max*100):0}%"></div></div>
+        <div class="bar-row__val mono">${g.earned}/${g.max}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="bars">
+      <h3 class="serif">PAR INDEX theo lĩnh vực (số nội dung đã hoàn thành)</h3>
+      ${parLv.map(g=>`<div class="bar-row">
+        <div class="bar-row__label">${g.linh_vuc}</div>
+        <div class="bar-row__track"><div class="bar-row__fill" style="width:${g.total? (g.done/g.total*100):0}%"></div></div>
+        <div class="bar-row__val mono">${g.done}/${g.total}</div>
+      </div>`).join('')}
+    </div>
+
+    <div class="bars">
+      <h3 class="serif">Đơn vị có khối lượng tồn đọng cao nhất</h3>
+      ${byDv.slice(0,6).map(d=>`<div class="bar-row">
+        <div class="bar-row__label">${d.dv}</div>
+        <div class="bar-row__track"><div class="bar-row__fill" style="width:${d.total? (d.done/d.total*100):0}%"></div></div>
+        <div class="bar-row__val mono">${d.done}/${d.total}</div>
+      </div>`).join('')}
+      <p class="hint" style="margin-top:10px;">Xem chi tiết theo từng đơn vị tại tab <b>Theo đơn vị</b>.</p>
+    </div>
+  </div>`;
+}
+
+function renderDTITab(){
+  const total = dtiCriteria.length;
+  const maxScore = dtiCriteria.reduce((s,i)=>s+(i.diem_toi_da||0),0);
+  return `<div class="panel">
+    ${renderToolbar()}
+    <p class="hint">${total} chỉ tiêu/nhiệm vụ thuộc Phụ lục DTI.Xã (tổng ${maxScore} điểm, 8 nhóm) — cập nhật tiến độ (%) sẽ tự tính điểm ước tính.</p>
+    <div id="dtiGroups">${renderGroupedItems(dtiCriteria, it=>it.nhom, arr=>`tối đa ${arr.reduce((s,i)=>s+(i.diem_toi_da||0),0)} đ`)}</div>
+  </div>`;
+}
+
+function renderPARTab(){
+  const total = parCriteria.length;
+  return `<div class="panel">
+    ${renderToolbar()}
+    <p class="hint">${total} nội dung thuộc Phụ lục PAR INDEX (7 lĩnh vực CCHC + khảo sát tác động + điểm thưởng/trừ).</p>
+    <div id="parGroups">${renderGroupedItems(parCriteria, it=>it.linh_vuc)}</div>
+  </div>`;
+}
+
+function renderDonViTab(){
+  const byDv = computeByDonVi();
+  return `<div class="panel">
+    ${renderToolbar()}
+    <p class="hint">Tổng hợp toàn bộ 124 chỉ tiêu/nhiệm vụ (DTI + PAR INDEX) theo đơn vị chủ trì — dùng để phân công, đôn đốc theo từng phòng/ban.</p>
+    ${byDv.map(d=>{
+      const visible = d.items.filter(matchesFilters);
+      if(visible.length===0) return '';
+      return `<div class="dv-card">
+        <div class="dv-card__head">
+          <h3 class="serif">${d.dv}</h3>
+          <div class="dv-stats">
+            <span><b>${d.total}</b> tổng nhiệm vụ</span>
+            <span style="color:var(--done)"><b>${d.done}</b> hoàn thành</span>
+            <span style="color:var(--progress)"><b>${d.prog}</b> đang triển khai</span>
+            <span style="color:var(--pending)"><b>${d.chua}</b> chưa triển khai</span>
+            ${d.stale? `<span style="color:var(--overdue)"><b>${d.stale}</b> quá hạn cập nhật</span>` : ''}
+          </div>
+        </div>
+        <div class="dv-list">
+          ${visible.map(it=>{
+            const s = getStatus(it.id);
+            return `<div class="dv-list-item">
+              <span class="nm">[${it.source}] ${it.ten}</span>
+              <span class="status-pill" data-s="${s.status}">${STATUS_LABEL[s.status]}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }).join('') || '<div class="empty">Không có dữ liệu phù hợp.</div>'}
+  </div>`;
+}
+
+// ====================== MAIN RENDER & EVENTS ======================
+function renderActiveTab(){
+  const c = document.getElementById('content');
+  if(activeTab==='dashboard') c.innerHTML = renderDashboard();
+  else if(activeTab==='dti') c.innerHTML = renderDTITab();
+  else if(activeTab==='par') c.innerHTML = renderPARTab();
+  else if(activeTab==='criteria') c.innerHTML = renderCriteriaTab();
+  else c.innerHTML = renderDonViTab();
+  bindContentEvents();
+}
+
+function bindContentEvents(){
+  const c = document.getElementById('content');
+  const searchInput = document.getElementById('searchInput');
+  if(searchInput){
+    searchInput.addEventListener('input', e=>{ search = e.target.value; renderActiveTab(); searchInput.focus(); searchInput.setSelectionRange(search.length, search.length); });
+  }
+  const dvf=document.getElementById('donViFilterSelect');if(dvf){const dvSet=new Set(allItems().map(it=>it.chu_tri||'Chưa phân công'));dvf.innerHTML="<option value='all'>Tất cả đơn vị</option>"+[...dvSet].sort().map(function(d){return "<option value='"+d+"' "+(donViFilter===d?'selected':'')+">"+d+"</option>";}).join('');dvf.addEventListener('change',e=>{donViFilter=e.target.value;renderActiveTab();});}
+  const sf = document.getElementById('statusFilterSelect');
+  if(sf){ sf.addEventListener('change', e=>{ statusFilter = e.target.value; renderActiveTab(); }); }
+
+  c.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const id = el.getAttribute('data-toggle');
+      openDetails[id] = !openDetails[id];
+      const det = document.getElementById('detail-'+id);
+      const chev = document.getElementById('chev-'+id);
+      det.classList.toggle('open', openDetails[id]);
+      chev.textContent = openDetails[id] ? '▴' : '▾';
+    });
+  });
+  c.querySelectorAll('[data-grouptoggle]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const gid = el.getAttribute('data-grouptoggle');
+      collapsedGroups[gid] = !collapsedGroups[gid];
+      renderActiveTab();
+    });
+  });
+  c.querySelectorAll('[data-act="openupdate"]').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      openUpdateModal(el.getAttribute('data-id'));
+    });
+  });
+}
+
+// ====================== MODAL CẬP NHẬT TIẾN ĐỘ ======================
+let umItemId = null;
+
+function openUpdateModal(id){
+  const item = allItems().find(it=>it.id===id);
+  if(!item) return;
+  umItemId = id;
+  const s = getStatus(id);
+  document.getElementById('umTitle').textContent = (item.ma||item.id) + ' — ' + item.ten;
+  const parts = [];
+  const nhomTxt = item.nhom || item.phan || item.linh_vuc || '';
+  if(nhomTxt) parts.push('Nhóm: ' + nhomTxt);
+  parts.push('Chủ trì: ' + (item.chu_tri || 'Chưa phân công'));
+  if(item.diem_toi_da!=null) parts.push('Điểm tối đa: ' + item.diem_toi_da + ' đ');
+  document.getElementById('umSub').textContent = parts.join(' · ');
+  document.getElementById('umStatus').value = s.status || 'chua';
+  document.getElementById('umProgress').value = s.progress || 0;
+  document.getElementById('umResult').value = s.result || '';
+  document.getElementById('umNote').value = s.note || '';
+  document.getElementById('umUpdater').value = updaterName || '';
+  document.getElementById('umMsg').textContent = '';
+  document.getElementById('umHistory').innerHTML = 'Đang tải...';
+  document.getElementById('updateModalOverlay').classList.add('open');
+  loadHistory(id);
+}
+
+function closeUpdateModal(){
+  document.getElementById('updateModalOverlay').classList.remove('open');
+  umItemId = null;
+}
+
+async function loadHistory(id){
+  const box = document.getElementById('umHistory');
+  if(!isConfigured()){ box.innerHTML = '<div class="hist-empty">Chưa cấu hình kết nối máy chủ — không tải được lịch sử.</div>'; return; }
+  try{
+    const data = await apiCall({ action:'getLog', id });
+    const logs = (data && data.logs) || [];
+    if(!logs.length){ box.innerHTML = '<div class="hist-empty">Chưa có lịch sử cập nhật.</div>'; return; }
+    const FIELD_LABEL = { status:'Trạng thái', progress:'Tiến độ', result:'Kết quả', note:'Ghi chú' };
+    box.innerHTML = logs.map(l=>{
+      const time = l.timestamp ? new Date(l.timestamp).toLocaleString('vi-VN') : '';
+      const fieldLbl = FIELD_LABEL[l.field] || l.field;
+      const newVal = l.field==='status' ? (STATUS_LABEL[l.newValue]||l.newValue) : (l.newValue || '—');
+      return '<div class="hist-line"><b>'+safeEsc(time)+'</b> — '+safeEsc(l.updatedBy||'—')+': '+safeEsc(fieldLbl)+' → <i>'+safeEsc(newVal)+'</i></div>';
+    }).join('');
+  }catch(e){
+    box.innerHTML = '<div class="hist-empty">Không tải được lịch sử (có thể máy chủ chưa hỗ trợ chức năng này).</div>';
+  }
+}
+
+function saveUpdateModal(){
+  if(!umItemId) return;
+  const id = umItemId;
+  const name = document.getElementById('umUpdater').value.trim();
+  if(name){ updaterName = name; document.getElementById('updaterInput').value = name; }
+  let v = parseFloat(document.getElementById('umProgress').value); if(isNaN(v)) v=0; v=Math.max(0,Math.min(100,v));
+  setStatus(id, {
+    status: document.getElementById('umStatus').value,
+    progress: v,
+    result: document.getElementById('umResult').value.trim(),
+    note: document.getElementById('umNote').value.trim()
+  });
+  renderActiveTab();
+  closeUpdateModal();
+  toastMsg('✓ Đã lưu cập nhật tiến độ.');
+}
+
+function toastMsg(m){
+  let t = document.getElementById('umToast');
+  if(!t){ t = document.createElement('div'); t.id = 'umToast'; t.className = 'toast'; document.body.appendChild(t); }
+  t.textContent = m;
+  t.classList.add('show');
+  clearTimeout(window._umToastTimer);
+  window._umToastTimer = setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+// ====================== EXCEL EXPORT ======================
+function exportToExcel(){
+  if(typeof XLSX === 'undefined'){
+    alert('Thư viện xuất Excel chưa tải xong. Vui lòng thử lại sau vài giây.');
+    return;
+  }
+
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('vi-VN');
+  var wb = XLSX.utils.book_new();
+
+  // ── Sheet 1: DTI cấp xã ──
+  var dtiHeader = ['ID','Nhóm','Tên chỉ số','Điểm tối đa','Chủ trì','Loại','Trạng thái','Tiến độ (%)','Kết quả','Ghi chú','Cập nhật lúc','Người cập nhật'];
+  var dtiRows = dtiCriteria.map(function(it){
+    var s = statusMap[it.id] || {};
+    var trangThai = {chua:'Chưa thực hiện', dangtrienkhai:'Đang triển khai', hoanthanh:'Hoàn thành', khongdat:'Không đạt'}[s.status||'chua'] || 'Chưa thực hiện';
+    var updAt = s.updatedAt ? new Date(s.updatedAt).toLocaleString('vi-VN') : '';
+    return [it.id, it.nhom||'', it.ten||'', it.diem_toi_da||0, it.chu_tri||'', it.loai||'', trangThai, s.progress||0, s.result||'', s.note||'', updAt, s.updatedBy||''];
+  });
+  var dtiData = [['BỘ CHỈ SỐ DTI CẤP XÃ — PHƯỚC HẢI — '+dateStr]].concat([dtiHeader]).concat(dtiRows);
+  var wsDTI = XLSX.utils.aoa_to_sheet(dtiData);
+  wsDTI['!merges'] = [{s:{r:0,c:0}, e:{r:0,c:11}}];
+  wsDTI['!cols'] = [50,120,220,80,100,50,130,80,200,200,130,120].map(function(w){return {wch:Math.round(w/7)};});
+  XLSX.utils.book_append_sheet(wb, wsDTI, 'DTI cấp xã');
+
+  // ── Sheet 2: PAR INDEX ──
+  var parHeader = ['ID','Mã','Phần','Lĩnh vực','Tên tiêu chí','Chủ trì','Loại','Trạng thái','Tiến độ (%)','Kết quả','Ghi chú','Cập nhật lúc','Người cập nhật'];
+  var parRows = parCriteria.map(function(it){
+    var s = statusMap[it.id] || {};
+    var trangThai = {chua:'Chưa thực hiện', dangtrienkhai:'Đang triển khai', hoanthanh:'Hoàn thành', khongdat:'Không đạt'}[s.status||'chua'] || 'Chưa thực hiện';
+    var updAt = s.updatedAt ? new Date(s.updatedAt).toLocaleString('vi-VN') : '';
+    return [it.id, it.ma||'', it.phan||'', it.linh_vuc||'', it.ten||'', it.chu_tri||'', it.loai||'', trangThai, s.progress||0, s.result||'', s.note||'', updAt, s.updatedBy||''];
+  });
+  var parData = [['BỘ CHỈ SỐ PAR INDEX — PHƯỚC HẢI — '+dateStr]].concat([parHeader]).concat(parRows);
+  var wsPAR = XLSX.utils.aoa_to_sheet(parData);
+  wsPAR['!merges'] = [{s:{r:0,c:0}, e:{r:0,c:12}}];
+  wsPAR['!cols'] = [50,50,140,120,220,100,50,130,80,200,200,130,120].map(function(w){return {wch:Math.round(w/7)};});
+  XLSX.utils.book_append_sheet(wb, wsPAR, 'PAR INDEX');
+
+  // ── Sheet 3: Tổng hợp ──
+  function calcStats(arr){
+    var st = {total:arr.length, hoanthanh:0, dangtrienkhai:0, chua:0, khongdat:0, earned:0, maxScore:0};
+    arr.forEach(function(it){
+      var s = statusMap[it.id]||{};
+      st[s.status||'chua'] = (st[s.status||'chua']||0) + 1;
+      st.maxScore += it.diem_toi_da||0;
+      st.earned   += (it.diem_toi_da||0) * (Math.min(100, s.progress||0)/100);
+    });
+    return st;
+  }
+  var ds = calcStats(dtiCriteria);
+  var ps = calcStats(parCriteria);
+  var tongHopData = [
+    ['TỔNG HỢP KẾT QUẢ — XÃ PHƯỚC HẢI — '+dateStr],
+    [],
+    ['BỘ CHỈ SỐ','TỔNG CHỈ SỐ','HOÀN THÀNH','ĐANG TRIỂN KHAI','CHƯA THỰC HIỆN','KHÔNG ĐẠT','ĐIỂM ĐẠT','ĐIỂM TỐI ĐA','TỶ LỆ (%)'],
+    ['DTI cấp xã', ds.total, ds.hoanthanh, ds.dangtrienkhai, ds.chua, ds.khongdat,
+      ds.earned.toFixed(1), ds.maxScore.toFixed(1), ds.maxScore>0?(ds.earned/ds.maxScore*100).toFixed(1)+'%':'0%'],
+    ['PAR INDEX',  ps.total, ps.hoanthanh, ps.dangtrienkhai, ps.chua, ps.khongdat,
+      ps.earned.toFixed(1), ps.maxScore.toFixed(1), ps.maxScore>0?(ps.earned/ps.maxScore*100).toFixed(1)+'%':'0%'],
+  ];
+  var wsTH = XLSX.utils.aoa_to_sheet(tongHopData);
+  wsTH['!merges'] = [{s:{r:0,c:0}, e:{r:0,c:8}}];
+  wsTH['!cols'] = [{wch:18},{wch:12},{wch:14},{wch:18},{wch:18},{wch:12},{wch:12},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb, wsTH, 'Tổng hợp');
+
+  // Xuất file
+  var fileName = 'BaoCao_DTI_PAR_PhuocHai_' + now.getFullYear() + ('0'+(now.getMonth()+1)).slice(-2) + ('0'+now.getDate()).slice(-2) + '.xlsx';
+  XLSX.writeFile(wb, fileName);
+}
+
+// ====================== REPORT EXPORT ======================
+function buildReportText(){
+  const now = new Date();
+  const dti = computeDTIScore();
+  const par = computePARCompletion();
+  const stale = computeStaleCount();
+  const byDv = computeByDonVi();
+  const dtiGroups = computeDTIByGroup();
+
+  let lines = [];
+  lines.push('BIÊN BẢN TỔNG HỢP TIẾN ĐỘ — CHUYỂN ĐỔI SỐ (DTI) & CẢI CÁCH HÀNH CHÍNH (PAR INDEX)');
+  lines.push('Đơn vị: UBND xã Phước Hải   |   Thời điểm tổng hợp: ' + now.toLocaleString('vi-VN'));
+  lines.push('');
+  lines.push('I. KẾT QUẢ TỔNG QUÁT');
+  lines.push(`- Điểm DTI cấp xã ước tính: ${dti.earned}/${dti.max} điểm (${dti.max? Math.round(dti.earned/dti.max*1000)/10:0}%)`);
+  lines.push(`- PAR INDEX: ${par.done}/${par.total} nội dung đã hoàn thành (${par.pct}%), ${par.inprog} nội dung đang triển khai`);
+  lines.push(`- Số chỉ tiêu/nhiệm vụ chưa cập nhật quá ${STALE_DAYS} ngày: ${stale}/${DTI_DATA.length+PAR_DATA.length}`);
+  lines.push('');
+  lines.push('II. CHI TIẾT ĐIỂM DTI THEO NHÓM CHỈ SỐ');
+  dtiGroups.forEach(g=> lines.push(`- ${g.nhom}: ${g.earned}/${g.max} điểm`));
+  lines.push('');
+  lines.push('III. KHỐI LƯỢNG CÔNG VIỆC THEO ĐƠN VỊ CHỦ TRÌ');
+  byDv.forEach(d=> lines.push(`- ${d.dv}: ${d.done}/${d.total} hoàn thành, ${d.prog} đang triển khai, ${d.chua} chưa triển khai${d.stale? `, ${d.stale} quá hạn cập nhật`:''}`));
+  lines.push('');
+  lines.push('IV. DANH MỤC CẦN ƯU TIÊN XỬ LÝ NGAY (chưa cập nhật / quá hạn)');
+  const staleItems = allItems().filter(isStale).slice(0,40);
+  if(staleItems.length===0) lines.push('- Không có mục nào quá hạn cập nhật.');
+  staleItems.forEach(it=>{
+    const s = getStatus(it.id);
+    lines.push(`- [${it.source}] ${it.ten} (Chủ trì: ${it.chu_tri||'chưa phân công'}; trạng thái: ${STATUS_LABEL[s.status]}; ${fmtAgo(s.updatedAt)})`);
+  });
+  if(allItems().filter(isStale).length>40) lines.push(`... và ${allItems().filter(isStale).length-40} mục khác (xem chi tiết trong công cụ).`);
+  lines.push('');
+  lines.push('— Hết —');
+  return lines.join('\n');
+}
+
+// ====================== CẤU HÌNH GOOGLE SHEETS ======================
+function renderConnectionBanner() {
+  const existing = document.getElementById('connBanner');
+  if (existing) existing.remove();
+
+  const banner = document.createElement('div');
+  banner.id = 'connBanner';
+
+  if (!isConfigured()) {
+    banner.style.cssText = 'background:#fff3cd;border-bottom:2px solid #e6a817;color:#7a5800;padding:11px 28px;font-size:13px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;';
+    banner.innerHTML = `
+      <span style="font-size:18px;flex:none">⚙️</span>
+      <div style="flex:1;min-width:200px">
+        <b>Chưa kết nối Google Sheets.</b>
+        Hiện đang lưu tạm tại máy này — chưa đồng bộ với người khác.
+      </div>
+      <button onclick="openSetupModal()" style="
+        background:#b8862e;color:#fff;border:none;border-radius:6px;
+        padding:7px 16px;font-size:13px;font-weight:600;cursor:pointer;
+        white-space:nowrap;font-family:inherit;">
+        ⚙ Cấu hình ngay
+      </button>`;
+  } else {
+    banner.style.cssText = 'background:#e4f1e8;border-bottom:2px solid #2f7d4f;color:#1a4f2e;padding:8px 28px;font-size:12.5px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
+    banner.innerHTML = `
+      <span>✅ Đã kết nối <b>Google Sheets</b> — Tự động đồng bộ mỗi 90 giây</span>
+      <span style="display:flex;align-items:center;gap:12px;">
+        <span id="syncInfo" style="font-size:11.5px;color:#2f7d4f;">Vừa kết nối</span>
+        <button onclick="openSetupModal()" style="
+          background:transparent;border:1px solid #2f7d4f;color:#2f7d4f;
+          border-radius:5px;padding:3px 10px;font-size:11.5px;cursor:pointer;font-family:inherit;">
+          Đổi URL
+        </button>
+      </span>`;
+  }
+
+  const app = document.querySelector('.app');
+  const tabs = document.querySelector('.tabs');
+  if (app && tabs) app.insertBefore(banner, tabs);
+}
+
+// ---------- Modal thiết lập ----------
+function openSetupModal() {
+  let overlay = document.getElementById('setupOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'setupOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,16,32,.55);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:60px 16px 16px;overflow-y:auto;';
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:14px;width:100%;max-width:560px;box-shadow:0 24px 64px rgba(0,0,0,.22);font-family:'IBM Plex Sans',sans-serif;">
+        <!-- Header -->
+        <div style="background:#1e2a44;color:#fff;padding:20px 24px 16px;border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-weight:700;font-size:16px;">⚙️ Cấu hình Google Sheets</div>
+            <div style="font-size:12px;opacity:.7;margin-top:3px;">Đồng bộ dữ liệu nhiều người — không cần sửa file HTML</div>
+          </div>
+          <button onclick="closeSetupModal()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;padding:4px 8px;opacity:.7;line-height:1;">✕</button>
+        </div>
+
+        <!-- Body -->
+        <div style="padding:24px;">
+          <!-- URL Web App -->
+          <div style="margin-bottom:16px;">
+            <label style="display:block;font-weight:600;font-size:13px;color:#1e2a44;margin-bottom:7px;">
+              🔗 Dán URL Google Apps Script Web App vào đây
+            </label>
+            <input id="setupUrlInput" type="url" placeholder="https://script.google.com/macros/s/AKfyc.../exec"
+              style="width:100%;padding:10px 12px;border:1.5px solid #ddd6c4;border-radius:7px;font-size:13px;
+                     font-family:'IBM Plex Mono',monospace;box-sizing:border-box;outline:none;
+                     transition:border-color .2s;"
+              onfocus="this.style.borderColor='#b8862e'"
+              onblur="this.style.borderColor='#ddd6c4'"
+              oninput="onSetupUrlChange()" />
+            <div id="setupUrlHint" style="font-size:11.5px;color:#8089a0;margin-top:5px;">
+              URL phải bắt đầu bằng <code>https://script.google.com/macros/s/</code>
+            </div>
+          </div>
+
+          <!-- Nút kiểm tra -->
+          <button id="setupTestBtn" onclick="testConnection()" disabled style="
+            width:100%;padding:10px;border:1.5px dashed #ddd6c4;border-radius:7px;
+            background:#f5f2ea;color:#8089a0;font-size:13px;font-weight:600;
+            cursor:not-allowed;font-family:inherit;transition:all .2s;margin-bottom:4px;">
+            🔌 Kiểm tra kết nối
+          </button>
+          <div id="setupTestResult" style="font-size:12.5px;min-height:20px;text-align:center;padding:4px 0;"></div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding:0 24px 20px;display:flex;gap:10px;justify-content:flex-end;">
+          <button onclick="closeSetupModal()" style="
+            padding:9px 20px;border:1.5px solid #ddd6c4;border-radius:7px;background:#fff;
+            color:#4b5774;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;">
+            Hủy bỏ
+          </button>
+          <button id="setupSaveBtn" onclick="saveSetup()" disabled style="
+            padding:9px 22px;border:none;border-radius:7px;background:#ccc;
+            color:#fff;font-size:13px;font-weight:700;cursor:not-allowed;font-family:inherit;
+            transition:background .2s;">
+            ✓ Lưu & Kết nối
+          </button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeSetupModal(); });
+  }
+
+  // Điền URL hiện tại nếu đã có
+  const inp = document.getElementById('setupUrlInput');
+  inp.value = getWebAppUrl();
+  var _cidEl=document.getElementById('setupClientIdInput'); if(_cidEl) _cidEl.value=getGisClientId();
+  onSetupUrlChange();
+  overlay.style.display = 'flex';
+  setTimeout(() => inp.focus(), 80);
+}
+
+function closeSetupModal() {
+  const o = document.getElementById('setupOverlay');
+  if (o) o.style.display = 'none';
+}
+
+function onSetupUrlChange() {
+  const val = (document.getElementById('setupUrlInput').value || '').trim();
+  const valid = val.startsWith('https://script.google.com/macros/s/') && val.endsWith('/exec');
+  const hint  = document.getElementById('setupUrlHint');
+  const testBtn = document.getElementById('setupTestBtn');
+  const saveBtn = document.getElementById('setupSaveBtn');
+
+  if (!val) {
+    hint.style.color = '#8089a0';
+    hint.textContent = 'URL phải bắt đầu bằng https://script.google.com/macros/s/';
+  } else if (!valid) {
+    hint.style.color = '#b23b3b';
+    hint.textContent = '⚠ URL chưa đúng định dạng — phải kết thúc bằng /exec';
+  } else {
+    hint.style.color = '#2f7d4f';
+    hint.textContent = '✓ Định dạng URL hợp lệ — nhấn Kiểm tra kết nối';
+  }
+
+  testBtn.disabled = !valid;
+  testBtn.style.cursor = valid ? 'pointer' : 'not-allowed';
+  testBtn.style.background = valid ? '#fff' : '#f5f2ea';
+  testBtn.style.color = valid ? '#1e2a44' : '#8089a0';
+  testBtn.style.borderStyle = valid ? 'solid' : 'dashed';
+  testBtn.style.borderColor = valid ? '#ddd6c4' : '#ddd6c4';
+
+  // Save chỉ enable sau khi test thành công — reset nếu URL thay đổi
+  saveBtn.disabled = true;
+  saveBtn.style.background = '#ccc';
+  saveBtn.style.cursor = 'not-allowed';
+  document.getElementById('setupTestResult').textContent = '';
+}
+
+async function testConnection() {
+  const val = (document.getElementById('setupUrlInput').value || '').trim();
+  const result = document.getElementById('setupTestResult');
+  const testBtn = document.getElementById('setupTestBtn');
+
+  testBtn.textContent = '⏳ Đang kiểm tra...';
+  testBtn.disabled = true;
+  result.style.color = '#8089a0';
+  result.textContent = 'Đang gửi yêu cầu đến Google Apps Script...';
+
+  try {
+    const url = val + '?action=ping';
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'Server trả lỗi');
+
+    result.style.color = '#2f7d4f';
+    result.textContent = '✅ Kết nối thành công! Server phản hồi lúc ' + new Date(json.data.time).toLocaleTimeString('vi-VN');
+
+    const saveBtn = document.getElementById('setupSaveBtn');
+    saveBtn.disabled = false;
+    saveBtn.style.background = '#2f7d4f';
+    saveBtn.style.cursor = 'pointer';
+  } catch(e) {
+    result.style.color = '#b23b3b';
+    result.innerHTML = '❌ Kết nối thất bại: <b>' + e.message + '</b><br>'
+      + '<span style="font-size:11px">Kiểm tra: Deploy đúng chưa? Access = Anyone? Đã Authorize chưa?</span>';
+  }
+
+  testBtn.textContent = '🔌 Kiểm tra kết nối';
+  testBtn.disabled = false;
+}
+
+async function saveSetup() {
+  const val = (document.getElementById('setupUrlInput').value || '').trim();
+  setWebAppUrl(val);
+  var _cid=(document.getElementById('setupClientIdInput')||{}).value||''; if(_cid.trim()) localStorage.setItem('phuochai-gis-client-id',_cid.trim());
+  closeSetupModal();
+  renderConnectionBanner();
+  setSaveState('syncing');
+  await syncFromServer();
+  startAutoSync();
+  updateSyncBadge();
+  renderActiveTab();
+}
+
+
+
+// ====================== PHÂN QUYỀN (AUTH) ======================
+// VIEWER  (mặc định) : chỉ xem, không cần đăng nhập
+// EDITOR  (Gmail)    : cập nhật tiến độ/kết quả, cần đăng nhập Google
+// ADMIN   (PIN)      : toàn quyền — chỉnh sửa bộ chỉ số, quản lý
+// ================================================================
+
+const ROLE_VIEWER = 'viewer';
+const ROLE_EDITOR = 'editor';
+const ROLE_ADMIN  = 'admin';
+
+let currentUser = null;
+// { email, name, picture, idToken, role, adminToken }
+
+function getRole(){ return currentUser ? currentUser.role : ROLE_VIEWER; }
+function canEdit()  { return getRole() === ROLE_ADMIN; }
+function canUpdate(){ return getRole() === ROLE_EDITOR || getRole() === ROLE_ADMIN; }
+
+function safeEsc(s){
+  var t = String(s||'');
+  t = t.split('&').join('&amp;');
+  t = t.split('<').join('&lt;');
+  t = t.split('"').join('&quot;');
+  return t;
+}
+
+// ─── Khôi phục phiên đăng nhập từ sessionStorage ───
+function restoreAuthSession(){
+  // Admin session (theo phiên trình duyệt)
+  try{
+    var adminSess = sessionStorage.getItem('phuochai-admin');
+    if(adminSess){
+      var a = JSON.parse(adminSess);
+      currentUser = {email:'admin@local', name: a.name||'Quản trị viên', picture:'', idToken:'', role:ROLE_ADMIN, adminToken: a.token};
+      return;
+    }
+  }catch(e){}
+  // Editor session (theo localStorage — nhớ qua lần truy cập)
+  try{
+    var edSess = localStorage.getItem('phuochai-editor-session');
+    if(edSess){
+      var u = JSON.parse(edSess);
+      if(u.email && u.name){
+        currentUser = Object.assign({}, u, {role: ROLE_EDITOR});
+      }
+    }
+  }catch(e){}
+}
+
+// ─── Đăng nhập Editor bằng PIN ───
+function openEditorLogin(){
+  var overlay = document.getElementById('editorLoginOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'editorLoginOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,16,32,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:60px 16px 16px;overflow-y:auto;';
+    overlay.innerHTML = '<div style="background:#fff;border-radius:14px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.25);font-family:\'IBM Plex Sans\',sans-serif;">'
+      +'<div style="background:#2f7d4f;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center;">'
+      +'<div><div style="font-weight:700;font-size:15px;">✏️ Đăng nhập CV nhập liệu</div>'
+      +'<div style="font-size:11.5px;opacity:.65;margin-top:2px">Nhập mã PIN để cập nhật tiến độ</div></div>'
+      +'<button onclick="document.getElementById(\'editorLoginOverlay\').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;opacity:.7">✕</button>'
+      +'</div>'
+      +'<div style="padding:24px;">'
+      +'<label style="display:block;font-size:12.5px;font-weight:600;color:#1e2a44;margin-bottom:6px">Tên hiển thị</label>'
+      +'<input id="editorNameInput" type="text" placeholder="Họ tên cán bộ..." style="width:100%;padding:9px 12px;border:1.5px solid #a8d5b5;border-radius:7px;font-size:13px;font-family:inherit;box-sizing:border-box;margin-bottom:14px;" />'
+      +'<label style="display:block;font-size:12.5px;font-weight:600;color:#1e2a44;margin-bottom:6px">Mã PIN</label>'
+      +'<input id="editorPinInput" type="password" placeholder="Nhập mã PIN cán bộ..." style="width:100%;padding:9px 12px;border:1.5px solid #a8d5b5;border-radius:7px;font-size:13px;font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key===\'Enter\')verifyEditorPin()" />'
+      +'<div id="editorPinMsg" style="font-size:12px;margin-top:6px;min-height:18px;color:#b23b3b;"></div>'
+      +'</div>'
+      +'<div style="padding:14px 22px;border-top:1px solid #d4edda;display:flex;justify-content:flex-end;gap:10px;">'
+      +'<button onclick="document.getElementById(\'editorLoginOverlay\').remove()" style="background:none;border:1px solid #a8d5b5;border-radius:7px;padding:9px 16px;cursor:pointer;font-size:12.5px;font-family:inherit;">Hủy</button>'
+      +'<button onclick="verifyEditorPin()" id="editorPinBtn" style="background:#2f7d4f;color:#fff;border:none;border-radius:7px;padding:9px 20px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Đăng nhập</button>'
+      +'</div></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  }
+  overlay.style.display = 'flex';
+  setTimeout(function(){ var inp=document.getElementById('editorNameInput'); if(inp) inp.focus(); }, 80);
+}
+
+function verifyEditorPin(){
+  var EDITOR_PIN = 'Member#2026';
+  var name = (document.getElementById('editorNameInput').value||'').trim() || 'CV nhập liệu';
+  var pin  = (document.getElementById('editorPinInput').value||'').trim();
+  var msg  = document.getElementById('editorPinMsg');
+  var btn  = document.getElementById('editorPinBtn');
+  if(!pin){ msg.textContent = 'Vui lòng nhập mã PIN.'; return; }
+  if(pin !== EDITOR_PIN){
+    msg.style.color = '#b23b3b';
+    msg.textContent = 'Mã PIN không đúng.';
+    document.getElementById('editorPinInput').value = '';
+    document.getElementById('editorPinInput').focus();
+    return;
+  }
+  currentUser = {email:'editor@local', name:name, picture:'', idToken:'', role:ROLE_EDITOR, adminToken:''};
+  localStorage.setItem('phuochai-editor-session', JSON.stringify({email:'editor@local', name:name, picture:'', idToken:''}));
+  document.getElementById('editorLoginOverlay').remove();
+  updaterName = name;
+  document.getElementById('updaterInput').value = name;
+  renderTopbarAuth();
+  renderConnectionBanner();
+  updateTabVisibility();
+  renderActiveTab();
+  btn.textContent = 'Đăng nhập'; btn.disabled = false;
+}
+
+// ─── Đăng nhập Admin bằng PIN ───
+async function openAdminLogin(){
+  var overlay = document.getElementById('adminLoginOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'adminLoginOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,16,32,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:60px 16px 16px;overflow-y:auto;';
+    overlay.innerHTML = '<div style="background:#fff;border-radius:14px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.25);font-family:\'IBM Plex Sans\',sans-serif;">'
+      +'<div style="background:#1e2a44;color:#fff;padding:18px 22px;border-radius:14px 14px 0 0;display:flex;justify-content:space-between;align-items:center;">'
+      +'<div><div style="font-weight:700;font-size:15px;">🔐 Đăng nhập Admin</div>'
+      +'<div style="font-size:11.5px;opacity:.65;margin-top:2px">Nhập mã PIN quản trị viên</div></div>'
+      +'<button onclick="document.getElementById(\'adminLoginOverlay\').remove()" style="background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer;opacity:.7">✕</button>'
+      +'</div>'
+      +'<div style="padding:24px;">'
+      +'<label style="display:block;font-size:12.5px;font-weight:600;color:#1e2a44;margin-bottom:6px">Tên hiển thị</label>'
+      +'<input id="adminNameInput" type="text" placeholder="Họ tên quản trị viên..." style="width:100%;padding:9px 12px;border:1.5px solid #ddd6c4;border-radius:7px;font-size:13px;font-family:inherit;box-sizing:border-box;margin-bottom:14px;" />'
+      +'<label style="display:block;font-size:12.5px;font-weight:600;color:#1e2a44;margin-bottom:6px">Mã PIN</label>'
+      +'<input id="adminPinInput" type="password" placeholder="Nhập mã PIN..." style="width:100%;padding:9px 12px;border:1.5px solid #ddd6c4;border-radius:7px;font-size:13px;font-family:inherit;box-sizing:border-box;" onkeydown="if(event.key===\'Enter\')verifyAdminPin()" />'
+      +'<div id="adminPinMsg" style="font-size:12px;margin-top:6px;min-height:18px;color:#b23b3b;"></div>'
+      +'</div>'
+      +'<div style="padding:14px 22px;border-top:1px solid #ddd6c4;display:flex;justify-content:flex-end;gap:10px;">'
+      +'<button onclick="document.getElementById(\'adminLoginOverlay\').remove()" style="background:none;border:1px solid #ddd6c4;border-radius:7px;padding:9px 16px;cursor:pointer;font-size:12.5px;font-family:inherit;">Hủy</button>'
+      +'<button onclick="verifyAdminPin()" id="adminPinBtn" style="background:#1e2a44;color:#fff;border:none;border-radius:7px;padding:9px 20px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;">Đăng nhập</button>'
+      +'</div></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  }
+  overlay.style.display = 'flex';
+  setTimeout(function(){ var inp=document.getElementById('adminNameInput'); if(inp) inp.focus(); }, 80);
+}
+
+async function verifyAdminPin(){
+  var name = (document.getElementById('adminNameInput').value||'').trim() || 'Quản trị viên';
+  var pin  = (document.getElementById('adminPinInput').value||'').trim();
+  var msg  = document.getElementById('adminPinMsg');
+  var btn  = document.getElementById('adminPinBtn');
+  if(!pin){ msg.textContent = 'Vui lòng nhập mã PIN.'; return; }
+
+  // Nếu chưa cấu hình Web App URL, dùng xác thực cục bộ (chế độ offline)
+  if(!isConfigured()){
+    var ADMIN_PIN_LOCAL = 'PhuocHai@2026';
+    if(pin !== ADMIN_PIN_LOCAL){
+      msg.style.color = '#b23b3b';
+      msg.textContent = 'Mã PIN không đúng.';
+      document.getElementById('adminPinInput').value = '';
+      document.getElementById('adminPinInput').focus();
+      return;
+    }
+    var token = 'local-' + Math.random().toString(36).slice(2);
+    _applyAdminSession(name, token);
+    return;
+  }
+
+  // Xác thực PIN với server để nhận token hợp lệ (bắt buộc để lưu lên Sheets)
+  btn.disabled = true; btn.textContent = '⏳ Đang xác thực...';
+  msg.style.color = '#b23b3b'; msg.textContent = '';
+  try {
+    var res = await fetch(getWebAppUrl(), {
+      method: 'POST',
+      body: JSON.stringify({action:'verifyPin', pin:pin}),
+      headers: {'Content-Type':'text/plain'}
+    });
+    var json = await res.json();
+    if(!json.ok || !json.data || !json.data.ok){
+      msg.textContent = (json.data && json.data.error) ? json.data.error : 'Mã PIN không đúng.';
+      document.getElementById('adminPinInput').value = '';
+      document.getElementById('adminPinInput').focus();
+      btn.disabled = false; btn.textContent = 'Đăng nhập';
+      return;
+    }
+    _applyAdminSession(name, json.data.token);
+  } catch(e) {
+    msg.textContent = 'Lỗi kết nối server: ' + e.message;
+    btn.disabled = false; btn.textContent = 'Đăng nhập';
+  }
+}
+
+function _applyAdminSession(name, token){
+  currentUser = {email:'admin@local', name:name, picture:'', idToken:'', role:ROLE_ADMIN, adminToken:token};
+  sessionStorage.setItem('phuochai-admin', JSON.stringify({token:token, name:name}));
+  var overlay = document.getElementById('adminLoginOverlay');
+  if(overlay) overlay.remove();
+  updaterName = name;
+  document.getElementById('updaterInput').value = name;
+  renderTopbarAuth();
+  renderConnectionBanner();
+  updateTabVisibility();
+  renderActiveTab();
+}
+
+// ─── Đăng nhập bằng Gmail (Google Identity Services) ───
+function getGisClientId(){ return (localStorage.getItem('phuochai-gis-client-id')||'').trim(); }
+
+function initGoogleSignIn(){
+  var clientId = getGisClientId();
+  if(!clientId || !window.google || !window.google.accounts) return;
+  google.accounts.id.initialize({
+    client_id: clientId,
+    callback: onGoogleSignIn,
+    auto_select: true,
+    cancel_on_tap_outside: false
+  });
+  if(!currentUser) google.accounts.id.prompt();
+}
+
+async function onGoogleSignIn(credentialResponse){
+  var idToken = credentialResponse.credential;
+  try{
+    var base64Url = idToken.split('.')[1];
+    var base64 = base64Url.replace(/-/g,'+').replace(/_/g,'/');
+    var jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c){
+      return '%'+('00'+c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    var payload = JSON.parse(jsonPayload);
+    var email   = payload.email   || '';
+    var name    = payload.name    || email;
+    var picture = payload.picture || '';
+
+    // Không overwrite admin session
+    if(currentUser && currentUser.role === ROLE_ADMIN) return;
+
+    currentUser = {email:email, name:name, picture:picture, idToken:idToken, role:ROLE_EDITOR};
+    localStorage.setItem('phuochai-editor-session', JSON.stringify({email:email, name:name, picture:picture, idToken:idToken}));
+
+    updaterName = name;
+    document.getElementById('updaterInput').value = name;
+    renderTopbarAuth();
+    renderConnectionBanner();
+    updateTabVisibility();
+    renderActiveTab();
+  }catch(e){ console.error('GIS sign-in error:', e); }
+}
+
+function signOut(){
+  var wasAdmin = currentUser && currentUser.role === ROLE_ADMIN;
+  currentUser = null;
+  if(wasAdmin){
+    sessionStorage.removeItem('phuochai-admin');
+  } else {
+    localStorage.removeItem('phuochai-editor-session');
+    if(window.google && window.google.accounts){
+      google.accounts.id.disableAutoSelect();
+    }
+  }
+  document.getElementById('updaterInput').value = '';
+  updaterName = '';
+  renderTopbarAuth();
+  renderActiveTab();
+}
+
+// ─── Render khu vực auth trong topbar ───
+function renderTopbarAuth(){
+  var el = document.getElementById('authArea');
+  if(!el) return;
+
+  if(!currentUser){
+    var clientId = getGisClientId();
+    var html = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">';
+    if(clientId && window.google && window.google.accounts){
+      html += '<div id="gisSignInBtn"></div>';
+      html += '<span style="color:#8c95ad;font-size:11px">hoặc</span>';
+    } else {
+      html += '<span style="font-size:11.5px;color:#aab3c6">👁 Chỉ xem</span>';
+    }
+    html += '<button onclick="openEditorLogin()" style="background:rgba(47,125,79,.22);border:1px solid #2f7d4f;color:#b6f0cc;border-radius:6px;padding:5px 11px;font-size:11.5px;cursor:pointer;font-family:inherit;white-space:nowrap;">✏️ CV nhập liệu</button>';
+    html += '<button onclick="openAdminLogin()" style="background:rgba(184,134,46,.18);border:1px solid #b8862e;color:#f0e3c4;border-radius:6px;padding:5px 11px;font-size:11.5px;cursor:pointer;font-family:inherit;white-space:nowrap;">🔐 Admin</button>';
+    html += '</div>';
+    el.innerHTML = html;
+
+    if(clientId && window.google && window.google.accounts){
+      setTimeout(function(){
+        var btn = document.getElementById('gisSignInBtn');
+        if(btn) google.accounts.id.renderButton(btn,{theme:'filled_blue',size:'medium',text:'signin_with',shape:'pill',locale:'vi'});
+      }, 100);
+    }
+    return;
+  }
+
+  var roleBadge = currentUser.role===ROLE_ADMIN
+    ? '<span style="background:#b8862e;color:#fff;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;letter-spacing:.3px">ADMIN</span>'
+    : '<span style="background:#2f7d4f;color:#fff;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700;letter-spacing:.3px">EDITOR</span>';
+  var avatar = currentUser.picture
+    ? '<img src="'+safeEsc(currentUser.picture)+'" style="width:28px;height:28px;border-radius:50%;border:2px solid '+(currentUser.role===ROLE_ADMIN?'#b8862e':'#2f7d4f')+';flex:none" />'
+    : '<span style="width:28px;height:28px;border-radius:50%;background:#2a3a5c;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:700;flex:none">'+safeEsc(currentUser.name[0].toUpperCase())+'</span>';
+
+  el.innerHTML = '<div style="display:flex;align-items:center;gap:7px;">'
+    +avatar
+    +'<div style="line-height:1.3;min-width:0">'
+    +'<div style="font-size:12px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px" title="'+safeEsc(currentUser.email)+'">'+safeEsc(currentUser.name)+'</div>'
+    +'<div style="margin-top:2px">'+roleBadge+'</div>'
+    +'</div>'
+    +'<button onclick="signOut()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#c7cfe0;border-radius:5px;padding:3px 9px;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap;">Đăng xuất</button>'
+    +'</div>';
+}
+
+// ─── Banner "Chỉ xem" hiển thị phía dưới tabs ───
+function renderPermissionBanner(){
+  var old = document.getElementById('permBanner');
+  if(old) old.remove();
+  if(canUpdate()) return;
+
+  var banner = document.createElement('div');
+  banner.id = 'permBanner';
+  banner.style.cssText = 'background:#e8f0fe;border-bottom:2px solid #4285f4;color:#1a56ab;padding:9px 28px;font-size:12.5px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;';
+
+  var clientId = getGisClientId();
+  if(clientId && window.google && window.google.accounts){
+    banner.innerHTML = '<span style="font-size:16px;flex:none">👁</span>'
+      +'<div style="flex:1"><b>Chế độ Chỉ xem.</b> Đăng nhập bằng tài khoản Google để cập nhật tiến độ.</div>'
+      +'<div id="permGisBtn"></div>';
+    var app = document.querySelector('.app');
+    var tabs = document.querySelector('.tabs');
+    if(app && tabs) app.insertBefore(banner, tabs.nextSibling);
+    setTimeout(function(){
+      var btn = document.getElementById('permGisBtn');
+      if(btn && window.google) google.accounts.id.renderButton(btn,{theme:'outline',size:'medium',text:'signin_with',shape:'pill',locale:'vi'});
+    }, 100);
+  } else {
+    banner.innerHTML = '<span style="font-size:16px;flex:none">👁</span>'
+      +'<div style="flex:1"><b>Chế độ Chỉ xem.</b> Đăng nhập Google để cập nhật tiến độ · Nhấn 🔐 Admin để quản lý bộ chỉ số.</div>';
+    var app2 = document.querySelector('.app');
+    var tabs2 = document.querySelector('.tabs');
+    if(app2 && tabs2) app2.insertBefore(banner, tabs2.nextSibling);
+  }
+}
+
+// ====================== CRITERIA MANAGEMENT ======================
+
+async function loadCriteriaFromServer(){
+  if(!isConfigured()) return;
+  try{
+    const data = await apiCall({action:'getCriteria',sheet:'ALL'});
+    let changed = false;
+    if(data && data.dti && data.dti.length>0){ dtiCriteria = data.dti; changed = true; }
+    if(data && data.par && data.par.length>0){ parCriteria = data.par; changed = true; }
+    if(changed) renderActiveTab();
+  }catch(e){}
+}
+
+async function saveCriteriaToServer(source){
+  const rows = source==='DTI' ? dtiCriteria : parCriteria;
+  await apiPost({action:'saveCriteria', sheet:source, rows:rows, updaterName:updaterName});
+}
+
+function genNewId(src){
+  const arr = src==='DTI' ? dtiCriteria : parCriteria;
+  const pfx = src==='DTI' ? 'DTI-' : 'PAR-';
+  const nums = arr.map(x=>parseInt((x.id||'').replace(pfx,''))||0).filter(n=>n>0);
+  const next = nums.length ? Math.max(...nums)+1 : (src==='DTI'?44:82);
+  return pfx + String(next).padStart(src==='DTI'?2:3,'0');
+}
+
+function escAttr(s){
+  var t = String(s||'');
+  t = t.split('&').join('&amp;');
+  t = t.split('"').join('&quot;');
+  t = t.split('<').join('&lt;');
+  return t;
+}
+
+function setCritSource(src){ critActiveSource=src; renderActiveTab(); }
+
+function onCritChange(src, idx, el){
+  const f = el.getAttribute('data-field');
+  const arr = src==='DTI' ? dtiCriteria : parCriteria;
+  arr[idx][f] = f==='diem_toi_da' ? parseFloat(el.value)||0 : el.value;
+  criteriaModified = true;
+  document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+    p.className='crit-pill-mod'; p.textContent='Có thay đổi chưa lưu';
+  });
+}
+
+// ── Đơn vị chủ trì: select + tự nhập ──
+var _critSaveTimer = null;
+function scheduleAutoSaveCrit(src){
+  clearTimeout(_critSaveTimer);
+  _critSaveTimer = setTimeout(async function(){
+    if(!isConfigured()) return;
+    var pill = document.querySelector('.crit-pill-mod,.crit-pill-ok');
+    try{
+      if(pill){ pill.textContent='⏳ Đang lưu...'; }
+      await saveCriteriaToServer(src);
+      criteriaModified = false;
+      // Pull confirmed data back from Sheets so display always matches stored values
+      await loadCriteriaFromServer();
+      document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+        p.className='crit-pill-ok'; p.textContent='Đã đồng bộ ✓';
+      });
+    }catch(e){
+      document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+        p.className='crit-pill-mod'; p.textContent='Lỗi lưu — thử lại';
+      });
+    }
+  }, 900);
+}
+
+function onChuTriSelect(src, idx, el){
+  const arr = src==='DTI' ? dtiCriteria : parCriteria;
+  const customInp = el.parentNode.querySelector('.crit-custom-inp');
+  if(el.value === '__other__'){
+    customInp.style.display = 'block';
+    customInp.focus();
+    arr[idx].chu_tri = customInp.value.trim();
+    // Don't auto-save yet — wait for user to type a value in the custom input
+    if(!arr[idx].chu_tri) return;
+  } else {
+    customInp.style.display = 'none';
+    arr[idx].chu_tri = el.value;
+  }
+  criteriaModified = true;
+  document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+    p.className='crit-pill-mod'; p.textContent='Có thay đổi chưa lưu';
+  });
+  scheduleAutoSaveCrit(src);
+}
+
+function onChuTriCustom(src, idx, el){
+  const arr = src==='DTI' ? dtiCriteria : parCriteria;
+  arr[idx].chu_tri = el.value.trim();
+  criteriaModified = true;
+  document.querySelectorAll('.crit-pill-mod,.crit-pill-ok').forEach(function(p){
+    p.className='crit-pill-mod'; p.textContent='Có thay đổi chưa lưu';
+  });
+  scheduleAutoSaveCrit(src);
+}
+
+function addCriteriaRow(src){
+  const it = src==='DTI'
+    ? {id:genNewId('DTI'),nhom:'',ten:'',diem_toi_da:1,loai:'NV',dvt:'SP',khung:'',chu_tri:'',ghi_chu:'',_new:true}
+    : {id:genNewId('PAR'),ma:'',phan:'',linh_vuc:'',ten:'',loai:'NV',dvt:'SP',khung:'',chu_tri:'',ghi_chu:'',_new:true};
+  if(src==='DTI') dtiCriteria.push(it); else parCriteria.push(it);
+  criteriaModified = true;
+  renderActiveTab();
+  setTimeout(function(){
+    const w = document.getElementById(src==='DTI'?'dtiCritTable':'parCritTable');
+    if(w) w.scrollTop = w.scrollHeight;
+  }, 60);
+}
+
+function delCriteriaRow(src, idx){
+  if(!confirm('Xóa dòng này khỏi bộ chỉ số?')) return;
+  if(src==='DTI') dtiCriteria.splice(idx,1); else parCriteria.splice(idx,1);
+  criteriaModified = true;
+  renderActiveTab();
+}
+
+function resetCriteria(){
+  if(!confirm('Khôi phục bộ chỉ số mặc định từ HTML?\n(Xóa toàn bộ thay đổi chưa lưu)')) return;
+  dtiCriteria = DTI_DATA.map(x => Object.assign({}, x));
+  parCriteria  = PAR_DATA.map(x => Object.assign({}, x));
+  criteriaModified = false;
+  renderActiveTab();
+}
+
+async function handleSaveCriteria(){
+  const btn = document.getElementById('saveCritBtn');
+  if(!isConfigured()){ openSetupModal(); return; }
+  btn.disabled = true; btn.textContent = '⏳ Đang lưu...';
+  try{
+    await saveCriteriaToServer('DTI');
+    await saveCriteriaToServer('PAR');
+    criteriaModified = false;
+    btn.textContent = '✅ Đã lưu!';
+    setTimeout(function(){ btn.disabled=false; btn.textContent='💾 Lưu lên Sheets'; renderActiveTab(); }, 1800);
+  }catch(e){
+    btn.textContent='❌ Lỗi — thử lại'; btn.disabled=false;
+    alert('Lỗi khi lưu: '+e.message);
+  }
+}
+
+function buildChuTriCell(src, idx, val){
+  const valTrimmed = (val||'').trim();
+  const inList = DON_VI_LIST.indexOf(valTrimmed) >= 0;
+  const isOther = valTrimmed !== '' && !inList;
+  const opts = DON_VI_LIST.map(function(dv){
+    return '<option value="'+escAttr(dv)+'"'+(valTrimmed===dv?' selected':'')+'>'+dv+'</option>';
+  }).join('') + '<option value="__other__"'+(isOther?' selected':'')+'>— Nhập tên khác... —</option>';
+  const customDisplay = isOther ? 'block' : 'none';
+  const customVal = isOther ? escAttr(valTrimmed) : '';
+  return '<td style="min-width:160px">'
+    +'<select class="crit-inp" style="width:100%" onchange="onChuTriSelect(\''+src+'\','+idx+',this)">'+opts+'</select>'
+    +'<input type="text" class="crit-inp crit-custom-inp" placeholder="Tên đơn vị chủ trì..." value="'+customVal+'"'
+    +' style="display:'+customDisplay+';margin-top:3px;width:100%"'
+    +' oninput="onChuTriCustom(\''+src+'\','+idx+',this)"'
+    +' onblur="onChuTriCustom(\''+src+'\','+idx+',this)"/>'
+    +'</td>';
+}
+
+function buildCritTable(src){
+  if(src==='DTI'){
+    const hds=['ID','Nhóm','Tên chỉ số','Điểm','Chủ trì','Loại','Khung','Ghi chú',''];
+    const rows = dtiCriteria.map(function(it,i){
+      return '<tr class="'+(it._new?'crit-new':'')+'">'
+        +'<td><input class="crit-inp mono" data-field="id" value="'+escAttr(it.id)+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
+        +'<td><input class="crit-inp" data-field="nhom" value="'+escAttr(it.nhom||'')+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
+        +'<td><input class="crit-inp" data-field="ten" value="'+escAttr(it.ten||'')+'" onchange="onCritChange(\'DTI\','+i+',this)" style="min-width:200px"/></td>'
+        +'<td><input class="crit-inp num" type="number" data-field="diem_toi_da" value="'+(it.diem_toi_da||0)+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
+        +buildChuTriCell('DTI',i,it.chu_tri||'')
+        +'<td><input class="crit-inp" data-field="loai" value="'+escAttr(it.loai||'')+'" onchange="onCritChange(\'DTI\','+i+',this)" style="width:48px"/></td>'
+        +'<td><input class="crit-inp" data-field="khung" value="'+escAttr(it.khung||'')+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
+        +'<td><input class="crit-inp" data-field="ghi_chu" value="'+escAttr(it.ghi_chu||'')+'" onchange="onCritChange(\'DTI\','+i+',this)"/></td>'
+        +'<td><button class="btn-del-row" onclick="delCriteriaRow(\'DTI\','+i+')" title="Xóa">✕</button></td>'
+        +'</tr>';
+    }).join('');
+    return '<table class="crit-table"><thead><tr>'+hds.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>';
+  } else {
+    const hds=['ID','Mã','Phần','Lĩnh vực','Tên tiêu chí','Chủ trì','Loại','Khung','Ghi chú',''];
+    const rows = parCriteria.map(function(it,i){
+      return '<tr class="'+(it._new?'crit-new':'')+'">'
+        +'<td><input class="crit-inp mono" data-field="id" value="'+escAttr(it.id)+'" onchange="onCritChange(\'PAR\','+i+',this)"/></td>'
+        +'<td><input class="crit-inp" data-field="ma" value="'+escAttr(it.ma||'')+'" onchange="onCritChange(\'PAR\','+i+',this)" style="width:58px"/></td>'
+        +'<td><input class="crit-inp" data-field="phan" value="'+escAttr(it.phan||'')+'" onchange="onCritChange(\'PAR\','+i+',this)" style="min-width:140px"/></td>'
+        +'<td><input class="crit-inp" data-field="linh_vuc" value="'+escAttr(it.linh_vuc||'')+'" onchange="onCritChange(\'PAR\','+i+',this)"/></td>'
+        +'<td><input class="crit-inp" data-field="ten" value="'+escAttr(it.ten||'')+'" onchange="onCritChange(\'PAR\','+i+',this)" style="min-width:180px"/></td>'
+        +buildChuTriCell('PAR',i,it.chu_tri||'')
+        +'<td><input class="crit-inp" data-field="loai" value="'+escAttr(it.loai||'')+'" onchange="onCritChange(\'PAR\','+i+',this)" style="width:48px"/></td>'
+        +'<td><input class="crit-inp" data-field="khung" value="'+escAttr(it.khung||'')+'" onchange="onCritChange(\'PAR\','+i+',this)"/></td>'
+        +'<td><input class="crit-inp" data-field="ghi_chu" value="'+escAttr(it.ghi_chu||'')+'" onchange="onCritChange(\'PAR\','+i+',this)"/></td>'
+        +'<td><button class="btn-del-row" onclick="delCriteriaRow(\'PAR\','+i+')" title="Xóa">✕</button></td>'
+        +'</tr>';
+    }).join('');
+    return '<table class="crit-table"><thead><tr>'+hds.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+}
+
+function renderCriteriaTab(){
+  const pill = criteriaModified
+    ? '<span class="crit-pill-mod">Có thay đổi chưa lưu</span>'
+    : '<span class="crit-pill-ok">Đã đồng bộ</span>';
+  const isDTI = critActiveSource==='DTI';
+  return '<div class="panel">'
+    +'<div class="crit-toolbar">'
+    +'<div style="display:flex;gap:4px">'
+    +'<button class="crit-stab '+(isDTI?'active':'')+'" onclick="setCritSource(\'DTI\')">DTI cấp xã ('+dtiCriteria.length+')</button>'
+    +'<button class="crit-stab '+(!isDTI?'active':'')+'" onclick="setCritSource(\'PAR\')">PAR INDEX ('+parCriteria.length+')</button>'
+    +'</div>'+pill
+    +'<div style="flex:1"></div>'
+    +'<button class="btn-ghost" onclick="resetCriteria()" title="Khôi phục dữ liệu mặc định từ file HTML">↺ Mặc định</button>'
+    +'<button class="btn-save-crit" id="saveCritBtn" onclick="handleSaveCriteria()">💾 Lưu lên Sheets</button>'
+    +'</div>'
+    +'<div class="crit-table-wrap" id="'+(isDTI?'dtiCritTable':'parCritTable')+'">'+buildCritTable(critActiveSource)+'</div>'
+    +'<button class="btn-add-row" onclick="addCriteriaRow(\''+critActiveSource+'\')">+ Thêm '+(isDTI?'chỉ số DTI':'tiêu chí PAR')+' mới</button>'
+    +'<p style="color:var(--ink-faint);font-size:12px;margin-top:8px">💡 Nhấp vào ô bất kỳ để chỉnh sửa inline. Nhấn <b>Lưu lên Sheets</b> để mọi người cùng thấy thay đổi.</p>'
+    +'</div>';
+}
+
+
+// ====================== INIT ======================
+async function init(){
+  restoreAuthSession();
+  try{syncQueue=JSON.parse(localStorage.getItem('phuochai-syncqueue')||'[]');}catch(e){syncQueue=[];}
+  await loadAll();
+  document.getElementById('updaterInput').value = updaterName;
+  document.getElementById('updaterInput').addEventListener('change', e=> saveUpdaterName(e.target.value));
+  setSaveState('idle');
+
+  renderTopbarAuth();
+  updateTabVisibility();
+
+  // Banner trạng thái — tự render lại khi cấu hình thay đổi
+  renderConnectionBanner();
+  setTimeout(function(){if(window.google&&window.google.accounts)initGoogleSignIn();else{var s=document.querySelector('script[src*="gsi"]');if(s)s.onload=initGoogleSignIn;}},300);
+
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      activeTab = t.getAttribute('data-tab');
+      search=''; statusFilter='all'; donViFilter='all';
+      renderActiveTab();
+    });
+  });
+
+  document.getElementById('exportBtn').addEventListener('click', ()=>{
+    document.getElementById('reportText').value = buildReportText();
+    document.getElementById('modalOverlay').classList.add('open');
+  });
+  document.getElementById('modalClose').addEventListener('click', ()=> document.getElementById('modalOverlay').classList.remove('open'));
+  document.getElementById('modalCloseBtn').addEventListener('click', ()=> document.getElementById('modalOverlay').classList.remove('open'));
+  document.getElementById('copyBtn').addEventListener('click', ()=>{
+    const ta = document.getElementById('reportText');
+    ta.select();
+    try{ navigator.clipboard.writeText(ta.value); document.getElementById('copyBtn').textContent='Đã sao chép ✓'; }
+    catch(e){ document.execCommand('copy'); }
+    setTimeout(()=>{ document.getElementById('copyBtn').textContent='Sao chép nội dung'; }, 1800);
+  });
+
+  document.getElementById('umClose').addEventListener('click', closeUpdateModal);
+  document.getElementById('umCancel').addEventListener('click', closeUpdateModal);
+  document.getElementById('umSave').addEventListener('click', saveUpdateModal);
+  document.getElementById('umQuickDone').addEventListener('click', ()=>{
+    document.getElementById('umStatus').value = 'hoanthanh';
+    document.getElementById('umProgress').value = 100;
+  });
+  document.getElementById('updateModalOverlay').addEventListener('click', e=>{
+    if(e.target.id === 'updateModalOverlay') closeUpdateModal();
+  });
+
+  updateTabVisibility();
+  renderActiveTab();
+}
+function updateTabVisibility(){
+  var ct=document.getElementById('critTab');
+  if(ct) ct.style.display=canEdit()?'':'none';
+}
+init();
+
+</script>
+</body>
+</html>
